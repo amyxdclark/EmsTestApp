@@ -109,6 +109,7 @@ function handleScenario(cfg, id){
   const s = getSession();
   if (!s?.service){ toast("Login required", "Please login and select a service."); showView("login"); return; }
 
+  if (id === "morningTruckCheck"){ openMorningTruckCheck(cfg); return; }
   if (id === "createIncident"){ openIncident(cfg); return; }
 
   if (id === "scanItem"){
@@ -334,6 +335,9 @@ $(function(){
   $("#btnConfirmShiftCount").on("click", () => confirmShiftCount(loadConfig()));
   $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));
   $("#btnConfirmPartialWaste").on("click", () => confirmPartialWaste(loadConfig()));
+
+  $("#btnMarkInService").on("click", () => markTruckStatus("in-service"));
+  $("#btnMarkOutOfService").on("click", () => markTruckStatus("out-of-service"));
 
   $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
   $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });

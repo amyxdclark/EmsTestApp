@@ -776,6 +776,85 @@
     </div>
   </div>
 
+  <!-- MORNING TRUCK CHECK MODAL -->
+  <div class="modal fade" id="truckCheckModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Morning Truck Check</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Complete check of meds, supplies, and equipment. Both crew members must sign off.</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="panel-white mb-3">
+            <h6 style="font-weight:950;">Crew Sign-Off</h6>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-bold">Crew Member 1</label>
+                <input class="form-control" id="truckCheckCrew1" readonly />
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-bold">Crew Member 2 (Partner) <span class="text-danger">*</span></label>
+                <input class="form-control" id="truckCheckCrew2" placeholder="Enter partner name" />
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label fw-bold">Unit Number <span class="text-danger">*</span></label>
+                <input class="form-control" id="truckCheckUnit" placeholder="e.g., Unit 42" />
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label fw-bold">Odometer Reading</label>
+                <input class="form-control" id="truckCheckOdometer" placeholder="e.g., 45,234" />
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label fw-bold">Shift Time</label>
+                <input class="form-control" id="truckCheckShift" placeholder="e.g., 0700-1900" />
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <b>Status:</b> <span id="truckCheckProgress">0 items checked</span>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-success" type="button" id="btnMarkInService" disabled>Mark In Service</button>
+                <button class="btn btn-danger" type="button" id="btnMarkOutOfService" disabled>Mark Out of Service</button>
+              </div>
+            </div>
+          </div>
+
+          <h6 style="font-weight:950;">Checklist Items (All Categories)</h6>
+          <div class="small-note mb-2">
+            Check each item as you verify it. Critical items (equipment and narcotics) must pass for In Service status.
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-lite">
+              <thead>
+                <tr>
+                  <th style="width:90px;">Done</th>
+                  <th>Item</th>
+                  <th style="width:180px;">Type</th>
+                  <th style="width:190px;">Dose/Qty</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="truckCheckBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div class="toast-host" id="toastHost"></div>
 

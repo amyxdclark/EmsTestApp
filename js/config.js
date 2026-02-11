@@ -147,6 +147,7 @@ const DEFAULT_CONFIG = {
     ]
   },
   scenarios:[
+    { id:"morningTruckCheck", label:"Morning Truck Check", tag:"Truck", meta:"Full unit checkout: meds + supplies + equipment", requiresLogin:true },
     { id:"createIncident", label:"Create an incident", tag:"PDF", meta:"Select items used + export PDF", requiresLogin:true },
     { id:"scanItem", label:"Scan an item", tag:"QR", meta:"Scan to add to checklist/incident", requiresLogin:true },
     { id:"checkoutMeds", label:"Check out meds", tag:"Med", meta:"Role-based checkout (narcotics only for Paramedic+)", requiresLogin:true },

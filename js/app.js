@@ -109,6 +109,7 @@ function handleScenario(cfg, id){
   const s = getSession();
   if (!s?.service){ toast("Login required", "Please login and select a service."); showView("login"); return; }
 
+  if (id === "morningTruckCheck"){ openMorningTruckCheck(cfg); return; }
   if (id === "createIncident"){ openIncident(cfg); return; }
 
   if (id === "scanItem"){
@@ -136,8 +137,8 @@ function handleScenario(cfg, id){
 
   if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
   if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
-  if (id === "stockSupplies"){ addLog("Stock", "Prototype stock action"); toast("Stock (demo)", "Logged locally."); return; }
-  if (id === "transferItems"){ addLog("Transfer", "Prototype transfer action"); toast("Transfer (demo)", "Logged locally."); return; }
+  if (id === "stockSupplies"){ openStockSupplies(cfg); return; }
+  if (id === "transferItems"){ openTransferItems(cfg); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
   if (id === "searchLogs"){ handleReport(cfg, "searchLogs"); return; }
   if (id === "narcShiftCount"){ openNarcShiftCount(cfg); return; }
@@ -175,8 +176,19 @@ function handleReport(cfg, id){
   }
 
   if (id === "expirationReport"){
-    toast("Expiration Report", "This feature displays items expiring within 30/60/90 days (prototype).");
-    addLog("Report", "Expiration Report");
+    generateExpirationReport(cfg);
+    showView("reports");
+    return;
+  }
+
+  if (id === "parLevelReport"){
+    generateParLevelReport(cfg);
+    showView("reports");
+    return;
+  }
+
+  if (id === "complianceReport"){
+    generateComplianceReport(cfg);
     showView("reports");
     return;
   }
@@ -188,7 +200,8 @@ function getLocationsForCurrent(cfg){
   const svc = getService(cfg, s.service);
   if (!svc) return [];
   const category = (s.modeKey === "MedChecks") ? "med" : "sup";
-  return (svc.locations || []).filter(l => l.category === category);
+  // Equipment is always visible regardless of mode
+  return (svc.locations || []).filter(l => l.category === category || l.category === "equip");
 }
 
 function buildScheduledChecksForCurrent(cfg){
@@ -218,6 +231,7 @@ $(function(){
     if (key === "home"){ if (!s?.service){ showView("login"); return; } showView("home"); return; }
     if (key === "iwant"){ if (!s?.service){ showView("login"); return; } showView("iwant"); return; }
     if (key === "reports"){ if (!s?.service){ showView("login"); return; } showView("reports"); return; }
+    if (key === "training"){ if (!s?.service){ showView("login"); return; } renderTraining(cfg); showView("training"); return; }
     if (key === "docs"){ showView("docs"); return; }
 
     if (key === "admin"){
@@ -334,6 +348,31 @@ $(function(){
   $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));
   $("#btnConfirmPartialWaste").on("click", () => confirmPartialWaste(loadConfig()));
 
+  $("#btnMarkInService").on("click", () => markTruckStatus("in-service"));
+  $("#btnMarkOutOfService").on("click", () => markTruckStatus("out-of-service"));
+
+  $("#btnStockAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Stock", "Select an item", { forceType:null }, (type, item) => {
+      addStockItem(type, item);
+    });
+  });
+  $("#btnConfirmStock").on("click", () => confirmStockSupplies());
+
+  $("#btnTransferAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Transfer", "Select an item", { forceType:null }, (type, item) => {
+      addTransferItem(type, item);
+    });
+  });
+  $("#btnConfirmTransfer").on("click", () => confirmTransferItems());
+
+  // Training module buttons (delegated since they're rendered dynamically)
+  $(document).on("click", "#btnAddCertification", () => openAddCertification());
+  $(document).on("click", "#btnConfirmAddCert", () => confirmAddCertification(loadConfig()));
+  $(document).on("click", "#btnAddTraining", () => openAddTraining());
+  $(document).on("click", "#btnConfirmAddTraining", () => confirmAddTraining(loadConfig()));
+
   $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
   $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });
 
@@ -438,4 +477,735 @@ function boot(){
   enforceNavVisibility();
   renderAll(cfg);
   showView("home");
+}
+
+function generateExpirationReport(cfg){
+  const now = new Date();
+  const meds = getMaster(cfg, "meds");
+  const supplies = getMaster(cfg, "supplies");
+  const allItems = [...meds.map(m => ({...m, type:"med"})), ...supplies.map(s => ({...s, type:"sup"}))];
+  
+  const expired = [];
+  const within30 = [];
+  const within60 = [];
+  const within90 = [];
+  
+  allItems.forEach(item => {
+    if (!item.expirationDate) return;
+    const expDate = new Date(item.expirationDate);
+    const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+    
+    const entry = { name: item.name, type: item.type, expirationDate: item.expirationDate, daysUntil: diffDays };
+    
+    if (diffDays < 0) {
+      expired.push(entry);
+    } else if (diffDays <= 30) {
+      within30.push(entry);
+    } else if (diffDays <= 60) {
+      within60.push(entry);
+    } else if (diffDays <= 90) {
+      within90.push(entry);
+    }
+  });
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Expiration Report</h5>
+      <div class="small-note mb-3">Generated: ${now.toLocaleString()}</div>
+  `;
+  
+  if (expired.length > 0){
+    html += `
+      <div class="alert alert-danger">
+        <h6 style="font-weight:950;">⚠️ EXPIRED (${expired.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    expired.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - Expired ${Math.abs(e.daysUntil)} days ago (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within30.length > 0){
+    html += `
+      <div class="alert alert-warning">
+        <h6 style="font-weight:950;">⚠️ Expiring Within 30 Days (${within30.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within30.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within60.length > 0){
+    html += `
+      <div class="alert alert-info">
+        <h6 style="font-weight:950;">ℹ️ Expiring Within 60 Days (${within60.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within60.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within90.length > 0){
+    html += `
+      <div class="alert alert-light border">
+        <h6 style="font-weight:950;">📅 Expiring Within 90 Days (${within90.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within90.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (expired.length === 0 && within30.length === 0 && within60.length === 0 && within90.length === 0){
+    html += `<div class="alert alert-success">✅ No items expiring within 90 days!</div>`;
+  }
+  
+  html += `
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportExpirationPdf">Export as PDF</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportExpirationPdf").off("click").on("click", () => {
+    exportExpirationReportPdf(expired, within30, within60, within90);
+  });
+  
+  addLog("Report", "Expiration Report");
+  toast("Expiration Report", "Report generated.");
+}
+
+function exportExpirationReportPdf(expired, within30, within60, within90){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Expiration Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 10;
+  
+  if (expired.length > 0){
+    doc.setFontSize(14);
+    doc.setTextColor(200, 0, 0);
+    doc.text(`EXPIRED (${expired.length} items)`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    expired.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - Exp: ${e.expirationDate}`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within30.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.setTextColor(200, 100, 0);
+    doc.text(`Expiring Within 30 Days (${within30.length} items)`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    within30.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within60.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.text(`Expiring Within 60 Days (${within60.length} items)`, 14, y); y += 8;
+    doc.setFontSize(9);
+    within60.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within90.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.text(`Expiring Within 90 Days (${within90.length} items)`, 14, y); y += 8;
+    doc.setFontSize(9);
+    within90.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+  }
+  
+  const fileName = `ExpirationReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Expiration Report: ${fileName}`);
+  toast("PDF Exported", fileName);
+}
+
+// Stock Supplies Workflow
+let stockSuppliesData = null;
+
+function openStockSupplies(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  const svc = getService(cfg, s.service);
+  if (!svc){ toast("Service Error", "Service not found."); return; }
+  
+  stockSuppliesData = {
+    destination: "",
+    items: [],
+    receivedBy: s.display || s.user,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Populate location dropdown
+  const locSelect = $("#stockDestination");
+  locSelect.empty();
+  (svc.locations || []).forEach(loc => {
+    locSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+  });
+  
+  $("#stockReceivedBy").val(stockSuppliesData.receivedBy);
+  renderStockItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("stockModal")).show();
+  addLog("Open Stock Supplies", s.service);
+}
+
+function renderStockItems(cfg){
+  const tbody = $("#stockBody");
+  tbody.empty();
+  
+  stockSuppliesData.items.forEach((item, idx) => {
+    tbody.append(`
+      <tr>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td><span class="badge text-bg-${item.type === 'sup' ? 'danger' : 'success'}">${item.type.toUpperCase()}</span></td>
+        <td><input type="number" class="form-control form-control-sm stock-qty" data-idx="${idx}" value="${item.quantity}" min="0" /></td>
+        <td><button class="btn btn-sm btn-outline-danger" data-del="${idx}">Remove</button></td>
+      </tr>
+    `);
+  });
+  
+  tbody.find(".stock-qty").on("input", function(){
+    const idx = +$(this).data("idx");
+    stockSuppliesData.items[idx].quantity = parseInt($(this).val() || "0");
+  });
+  
+  tbody.find("button[data-del]").on("click", function(){
+    const idx = +$(this).data("del");
+    stockSuppliesData.items.splice(idx, 1);
+    renderStockItems(cfg);
+  });
+}
+
+function addStockItem(type, item){
+  stockSuppliesData.items.push({
+    name: item.name,
+    type: type === "sup" ? "sup" : "med",
+    quantity: 1
+  });
+  renderStockItems(loadConfig());
+}
+
+function confirmStockSupplies(){
+  const cfg = loadConfig();
+  const destination = $("#stockDestination").val();
+  const receivedBy = $("#stockReceivedBy").val().trim();
+  
+  if (!destination){
+    toast("Missing Location", "Please select a destination location.");
+    return;
+  }
+  
+  if (stockSuppliesData.items.length === 0){
+    toast("No Items", "Please add at least one item to stock.");
+    return;
+  }
+  
+  stockSuppliesData.destination = destination;
+  stockSuppliesData.receivedBy = receivedBy;
+  
+  const logDetail = `Destination: ${destination}, Received by: ${receivedBy}, Items: ${JSON.stringify(stockSuppliesData.items)}`;
+  addLog("Stock Supplies", logDetail);
+  toast("Stock Complete", `${stockSuppliesData.items.length} items restocked at ${destination}.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("stockModal")).hide();
+}
+
+// Transfer Items Workflow
+let transferItemsData = null;
+
+function openTransferItems(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  const svc = getService(cfg, s.service);
+  if (!svc){ toast("Service Error", "Service not found."); return; }
+  
+  transferItemsData = {
+    source: "",
+    destination: "",
+    items: [],
+    transferredBy: s.display || s.user,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Populate location dropdowns
+  const srcSelect = $("#transferSource");
+  const dstSelect = $("#transferDest");
+  srcSelect.empty();
+  dstSelect.empty();
+  (svc.locations || []).forEach(loc => {
+    srcSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+    dstSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+  });
+  
+  $("#transferBy").val(transferItemsData.transferredBy);
+  renderTransferItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("transferModal")).show();
+  addLog("Open Transfer Items", s.service);
+}
+
+function renderTransferItems(cfg){
+  const tbody = $("#transferBody");
+  tbody.empty();
+  
+  transferItemsData.items.forEach((item, idx) => {
+    tbody.append(`
+      <tr>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td><span class="badge text-bg-${item.type === 'sup' ? 'danger' : 'success'}">${item.type.toUpperCase()}</span></td>
+        <td><input type="number" class="form-control form-control-sm transfer-qty" data-idx="${idx}" value="${item.quantity}" min="0" /></td>
+        <td><button class="btn btn-sm btn-outline-danger" data-del="${idx}">Remove</button></td>
+      </tr>
+    `);
+  });
+  
+  tbody.find(".transfer-qty").on("input", function(){
+    const idx = +$(this).data("idx");
+    transferItemsData.items[idx].quantity = parseInt($(this).val() || "0");
+  });
+  
+  tbody.find("button[data-del]").on("click", function(){
+    const idx = +$(this).data("del");
+    transferItemsData.items.splice(idx, 1);
+    renderTransferItems(cfg);
+  });
+}
+
+function addTransferItem(type, item){
+  transferItemsData.items.push({
+    name: item.name,
+    type: type === "sup" ? "sup" : "med",
+    quantity: 1
+  });
+  renderTransferItems(loadConfig());
+}
+
+function confirmTransferItems(){
+  const cfg = loadConfig();
+  const source = $("#transferSource").val();
+  const destination = $("#transferDest").val();
+  const transferredBy = $("#transferBy").val().trim();
+  
+  if (!source || !destination){
+    toast("Missing Location", "Please select both source and destination locations.");
+    return;
+  }
+  
+  if (source === destination){
+    toast("Same Location", "Source and destination must be different.");
+    return;
+  }
+  
+  if (transferItemsData.items.length === 0){
+    toast("No Items", "Please add at least one item to transfer.");
+    return;
+  }
+  
+  transferItemsData.source = source;
+  transferItemsData.destination = destination;
+  transferItemsData.transferredBy = transferredBy;
+  
+  const logDetail = `From: ${source}, To: ${destination}, By: ${transferredBy}, Items: ${JSON.stringify(transferItemsData.items)}`;
+  addLog("Transfer Items", logDetail);
+  toast("Transfer Complete", `${transferItemsData.items.length} items transferred from ${source} to ${destination}.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("transferModal")).hide();
+}
+
+// Par Level Comparison and Reorder Report
+function generateParLevelReport(cfg){
+  const supplies = getMaster(cfg, "supplies");
+  
+  // For demonstration, simulate current on-hand quantities
+  // In a real system, this would come from inventory tracking
+  const belowPar = [];
+  const atPar = [];
+  
+  supplies.forEach(item => {
+    const parLevel = parseInt(item.par || "0");
+    if (parLevel === 0) return;
+    
+    // Simulate current quantity for demonstration purposes
+    // Random value between 50% and 150% of par level (0.5 + random 0-1 = 0.5-1.5)
+    // In a real system, this would come from actual inventory tracking
+    const simulatedCurrent = Math.floor(parLevel * (0.5 + Math.random()));
+    
+    const entry = {
+      name: item.name,
+      par: parLevel,
+      current: simulatedCurrent,
+      needed: Math.max(0, parLevel - simulatedCurrent),
+      percentOfPar: Math.round((simulatedCurrent / parLevel) * 100)
+    };
+    
+    if (simulatedCurrent < parLevel) {
+      belowPar.push(entry);
+    } else {
+      atPar.push(entry);
+    }
+  });
+  
+  // Sort by percent of par (critical items first)
+  belowPar.sort((a, b) => a.percentOfPar - b.percentOfPar);
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Par Level Report</h5>
+      <div class="small-note mb-3">Generated: ${new Date().toLocaleString()}</div>
+      <div class="alert alert-info">
+        <b>Note:</b> Current quantities are simulated for demonstration purposes. In production, this would track actual inventory counts.
+      </div>
+  `;
+  
+  if (belowPar.length > 0){
+    html += `
+      <div class="alert alert-warning">
+        <h6 style="font-weight:950;">⚠️ Items Below Par Level (${belowPar.length} items)</h6>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Par Level</th>
+                <th>Current</th>
+                <th>Needed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    belowPar.forEach(e => {
+      const statusClass = e.percentOfPar < 50 ? 'danger' : 'warning';
+      html += `
+        <tr>
+          <td><b>${escapeHtml(e.name)}</b></td>
+          <td>${e.par}</td>
+          <td>${e.current}</td>
+          <td><b>${e.needed}</b></td>
+          <td><span class="badge text-bg-${statusClass}">${e.percentOfPar}% of par</span></td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    html += `
+      <div class="panel-white mt-3 bg-light">
+        <h6 style="font-weight:950;">📋 Reorder List</h6>
+        <ul class="mb-0">
+    `;
+    
+    belowPar.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b>: Order ${e.needed} units (current: ${e.current}, par: ${e.par})</li>`;
+    });
+    
+    html += `</ul></div>`;
+  }
+  
+  if (atPar.length > 0){
+    html += `
+      <div class="alert alert-success mt-3">
+        <h6 style="font-weight:950;">✅ Items At or Above Par (${atPar.length} items)</h6>
+        <div class="small text-muted">These items are adequately stocked.</div>
+      </div>
+    `;
+  }
+  
+  if (belowPar.length === 0 && atPar.length === 0){
+    html += `<div class="alert alert-info">No supply items with par levels found.</div>`;
+  }
+  
+  html += `
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportParPdf">Export as PDF</button>
+        <button class="btn btn-outline-secondary ms-2" type="button" id="btnExportReorderCsv">Export Reorder List (CSV)</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportParPdf").off("click").on("click", () => {
+    exportParLevelPdf(belowPar, atPar);
+  });
+  
+  $("#btnExportReorderCsv").off("click").on("click", () => {
+    exportReorderCsv(belowPar);
+  });
+  
+  addLog("Report", "Par Level Report");
+  toast("Par Level Report", "Report generated.");
+}
+
+function exportParLevelPdf(belowPar, atPar){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Par Level Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 10;
+  
+  if (belowPar.length > 0){
+    doc.setFontSize(14);
+    doc.setTextColor(200, 100, 0);
+    doc.text(`Items Below Par (${belowPar.length})`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    
+    belowPar.slice(0, 50).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`${e.name}: Par ${e.par}, Current ${e.current}, Need ${e.needed} (${e.percentOfPar}%)`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (atPar.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.setTextColor(0, 150, 0);
+    doc.text(`Items At or Above Par (${atPar.length})`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text("All items adequately stocked.", 16, y);
+  }
+  
+  const fileName = `ParLevelReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Par Level Report: ${fileName}`);
+  toast("PDF Exported", fileName);
+}
+
+function exportReorderCsv(belowPar){
+  let csv = "Item,Par Level,Current Quantity,Quantity Needed,Percent of Par\n";
+  
+  belowPar.forEach(e => {
+    csv += `"${e.name}",${e.par},${e.current},${e.needed},${e.percentOfPar}%\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ReorderList_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  addLog("Export CSV", "Reorder List");
+  toast("CSV Exported", a.download);
+}
+
+// Compliance and Analytics Report
+function generateComplianceReport(cfg){
+  const logs = getLogs();
+  
+  // Analyze logs for compliance metrics
+  const checklistSaves = logs.filter(l => l.action === "Save Checklist");
+  const narcCounts = logs.filter(l => l.action === "Narcotic Shift Count");
+  const truckChecks = logs.filter(l => l.action === "Morning Truck Check");
+  const discrepancies = logs.filter(l => l.action === "Discrepancy" || l.action.includes("Discrepancy"));
+  const checkouts = logs.filter(l => l.action === "Checkout");
+  const wastes = logs.filter(l => l.action === "Waste");
+  
+  // Calculate rates based on last 30 days
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  const recentSaves = checklistSaves.filter(l => new Date(l.t) > thirtyDaysAgo);
+  const recentNarc = narcCounts.filter(l => new Date(l.t) > thirtyDaysAgo);
+  const recentTruck = truckChecks.filter(l => new Date(l.t) > thirtyDaysAgo);
+  
+  // Group narcotic actions by drug
+  const narcUsage = {};
+  wastes.filter(l => l.details && l.details.includes("narcotic")).forEach(l => {
+    // Simple parsing for demo
+    narcUsage["Narcotics"] = (narcUsage["Narcotics"] || 0) + 1;
+  });
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Compliance & Analytics Summary</h5>
+      <div class="small-note mb-3">Generated: ${now.toLocaleString()} • Last 30 days</div>
+      
+      <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Checklist Completions</h6>
+            <div class="display-6">${recentSaves.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Narcotic Counts</h6>
+            <div class="display-6">${recentNarc.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Truck Checks</h6>
+            <div class="display-6">${recentTruck.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Discrepancies</h6>
+            <div class="display-6">${discrepancies.length}</div>
+            <div class="small text-muted">All time</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-3">
+        <h6 style="font-weight:950;">Activity Breakdown (All Time)</h6>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Action Type</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Checklist Saves</td><td><b>${checklistSaves.length}</b></td></tr>
+            <tr><td>Narcotic Shift Counts</td><td><b>${narcCounts.length}</b></td></tr>
+            <tr><td>Morning Truck Checks</td><td><b>${truckChecks.length}</b></td></tr>
+            <tr><td>Checkouts</td><td><b>${checkouts.length}</b></td></tr>
+            <tr><td>Wastes</td><td><b>${wastes.length}</b></td></tr>
+            <tr><td>Discrepancies Reported</td><td><b>${discrepancies.length}</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="alert alert-info mt-3">
+        <b>📊 Insights:</b>
+        <ul class="mb-0">
+          ${recentSaves.length > 0 ? `<li>Average ${(recentSaves.length / 30).toFixed(1)} checklist completions per day.</li>` : '<li>No checklist activity in last 30 days.</li>'}
+          ${recentTruck.length > 0 ? `<li>Truck checks performed ${recentTruck.length} times (Goal: 30/month).</li>` : '<li>No truck checks in last 30 days.</li>'}
+          ${discrepancies.length > 0 ? `<li>${discrepancies.length} discrepancies reported - review for patterns.</li>` : '<li>No discrepancies reported.</li>'}
+        </ul>
+      </div>
+      
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportCompliancePdf">Export as PDF</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportCompliancePdf").off("click").on("click", () => {
+    exportCompliancePdf(recentSaves, recentNarc, recentTruck, discrepancies);
+  });
+  
+  addLog("Report", "Compliance Summary");
+  toast("Compliance Report", "Report generated.");
+}
+
+function exportCompliancePdf(recentSaves, recentNarc, recentTruck, discrepancies){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Compliance & Analytics Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 6;
+  doc.text(`Period: Last 30 days`, 14, y); y += 10;
+  
+  doc.setFontSize(14);
+  doc.text("Summary Metrics", 14, y); y += 8;
+  doc.setFontSize(11);
+  doc.text(`Checklist Completions: ${recentSaves.length}`, 16, y); y += 6;
+  doc.text(`Narcotic Counts: ${recentNarc.length}`, 16, y); y += 6;
+  doc.text(`Truck Checks: ${recentTruck.length}`, 16, y); y += 6;
+  doc.text(`Discrepancies: ${discrepancies.length}`, 16, y); y += 10;
+  
+  doc.setFontSize(14);
+  doc.text("Insights", 14, y); y += 8;
+  doc.setFontSize(9);
+  doc.text(`- Average ${(recentSaves.length / 30).toFixed(1)} checklist completions per day`, 16, y); y += 5;
+  doc.text(`- Truck checks: ${recentTruck.length} (Goal: 30/month)`, 16, y); y += 5;
+  if (discrepancies.length > 0){
+    doc.text(`- ${discrepancies.length} discrepancies reported - review for patterns`, 16, y); y += 5;
+  }
+  
+  const fileName = `ComplianceReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Compliance Report: ${fileName}`);
+  toast("PDF Exported", fileName);
 }

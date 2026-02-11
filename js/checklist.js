@@ -11,15 +11,34 @@ function persistChecklistState(key, value){
 }
 
 function seedRowsFromMaster(cfg, category){
-  const list = (category === "med") ? getMaster(cfg, "meds") : getMaster(cfg, "supplies");
-  return list.slice(0, 8).map(x => ({
-    done:false,
-    category,
-    isNarcotic: !!x.isNarcotic,
-    item:x.name,
-    doseQty: (category === "med") ? (x.defaultDose || "") : (x.par || ""),
-    notes: x.notes || ""
-  }));
+  let list;
+  if (category === "med") {
+    list = getMaster(cfg, "meds");
+  } else if (category === "equip") {
+    list = getMaster(cfg, "equipment");
+  } else {
+    list = getMaster(cfg, "supplies");
+  }
+  
+  return list.map(x => {
+    // Determine appropriate dose/quantity value based on category
+    let doseQty = "";
+    if (category === "med") {
+      doseQty = x.defaultDose || "";
+    } else if (category === "sup") {
+      doseQty = x.par || "";
+    }
+    // Equipment has no dose/qty, leave empty
+    
+    return {
+      done:false,
+      category,
+      isNarcotic: !!x.isNarcotic,
+      item:x.name,
+      doseQty,
+      notes: x.notes || ""
+    };
+  });
 }
 
 function openChecklistForLocation(loc){
@@ -95,9 +114,14 @@ function renderChecklistRows(cfg){
   const allMeds = getMaster(cfg, "meds");
 
   currentChecklist.rows.forEach((r, idx) => {
-    const typeBadge = r.category === "sup"
-      ? `<span class="badge text-bg-danger">SUP</span>`
-      : (r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
+    let typeBadge;
+    if (r.category === "sup") {
+      typeBadge = `<span class="badge text-bg-danger">SUP</span>`;
+    } else if (r.category === "equip") {
+      typeBadge = `<span class="badge text-bg-info">EQUIP</span>`;
+    } else {
+      typeBadge = r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`;
+    }
 
     let scheduleBadge = "";
     if (r.isNarcotic && r.category === "med"){
@@ -356,4 +380,190 @@ function renderPickerList(cfg){
     });
     host.append(btn);
   });
+}
+
+// Morning Truck Check workflow
+let morningTruckCheckData = null;
+
+function openMorningTruckCheck(cfg){
+  const s = getSession();
+  if (!s) return;
+  
+  const svc = getService(cfg, s.service);
+  if (!svc){ toast("Service Error", "Service not found."); return; }
+  
+  // Combine all three categories
+  const medRows = seedRowsFromMaster(cfg, "med");
+  const supRows = seedRowsFromMaster(cfg, "sup");
+  const equipRows = seedRowsFromMaster(cfg, "equip");
+  
+  morningTruckCheckData = {
+    service: s.service,
+    user: s.user,
+    roleId: s.roleId,
+    timestamp: new Date().toISOString(),
+    crewMember1: s.display || s.user,
+    crewMember2: "",
+    unitNumber: "",
+    odometer: "",
+    shiftTime: "",
+    status: "pending",
+    rows: [...medRows, ...supRows, ...equipRows]
+  };
+  
+  // Populate the form
+  $("#truckCheckCrew1").val(morningTruckCheckData.crewMember1);
+  $("#truckCheckCrew2").val("");
+  $("#truckCheckUnit").val("");
+  $("#truckCheckOdometer").val("");
+  $("#truckCheckShift").val("");
+  
+  renderTruckCheckRows(cfg);
+  
+  new bootstrap.Modal(document.getElementById("truckCheckModal")).show();
+  addLog("Open Morning Truck Check", s.service);
+}
+
+function renderTruckCheckRows(cfg){
+  const body = $("#truckCheckBody");
+  body.empty();
+  
+  const allMeds = getMaster(cfg, "meds");
+  
+  morningTruckCheckData.rows.forEach((r, idx) => {
+    let typeBadge;
+    if (r.category === "sup") {
+      typeBadge = `<span class="badge text-bg-danger">SUP</span>`;
+    } else if (r.category === "equip") {
+      typeBadge = `<span class="badge text-bg-info">EQUIP</span>`;
+    } else {
+      typeBadge = r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`;
+    }
+    
+    let scheduleBadge = "";
+    if (r.isNarcotic && r.category === "med"){
+      const medItem = allMeds.find(m => m.name === r.item);
+      if (medItem?.deaSchedule){
+        scheduleBadge = ` <span class="badge text-bg-dark">Sched ${escapeHtml(medItem.deaSchedule)}</span>`;
+      }
+    }
+    
+    body.append(`
+      <tr>
+        <td><input type="checkbox" class="form-check-input" data-idx="${idx}" ${r.done ? "checked":""} /></td>
+        <td><b>${escapeHtml(r.item)}</b></td>
+        <td>${typeBadge}${scheduleBadge}</td>
+        <td><input class="form-control form-control-sm" data-field="doseQty" data-idx="${idx}" value="${escapeAttr(r.doseQty || "")}" /></td>
+        <td><input class="form-control form-control-sm" data-field="notes" data-idx="${idx}" value="${escapeAttr(r.notes || "")}" /></td>
+      </tr>
+    `);
+  });
+  
+  body.find('input[type="checkbox"]').off("change").on("change", function(){
+    const i = +$(this).data("idx");
+    morningTruckCheckData.rows[i].done = this.checked;
+    updateTruckCheckStatus();
+  });
+  body.find('input[data-field]').off("input").on("input", function(){
+    const i = +$(this).data("idx");
+    const f = $(this).data("field");
+    morningTruckCheckData.rows[i][f] = $(this).val();
+  });
+}
+
+function updateTruckCheckStatus(){
+  const total = morningTruckCheckData.rows.length;
+  const checked = morningTruckCheckData.rows.filter(r => r.done).length;
+  const criticalFailed = morningTruckCheckData.rows.some(r => !r.done && (r.isNarcotic || r.category === "equip"));
+  
+  $("#truckCheckProgress").text(`${checked} / ${total} items checked`);
+  
+  if (criticalFailed && checked > 0){
+    $("#btnMarkInService").prop("disabled", true);
+    $("#btnMarkOutOfService").prop("disabled", false);
+  } else if (checked === total){
+    $("#btnMarkInService").prop("disabled", false);
+    $("#btnMarkOutOfService").prop("disabled", true);
+  } else {
+    $("#btnMarkInService").prop("disabled", true);
+    $("#btnMarkOutOfService").prop("disabled", true);
+  }
+}
+
+function markTruckStatus(status){
+  morningTruckCheckData.crewMember2 = $("#truckCheckCrew2").val().trim();
+  morningTruckCheckData.unitNumber = $("#truckCheckUnit").val().trim();
+  morningTruckCheckData.odometer = $("#truckCheckOdometer").val().trim();
+  morningTruckCheckData.shiftTime = $("#truckCheckShift").val().trim();
+  morningTruckCheckData.status = status;
+  morningTruckCheckData.completedAt = new Date().toISOString();
+  
+  if (!morningTruckCheckData.crewMember2){
+    toast("Missing Info", "Please enter partner name.");
+    return;
+  }
+  if (!morningTruckCheckData.unitNumber){
+    toast("Missing Info", "Please enter unit number.");
+    return;
+  }
+  
+  // Save to localStorage
+  const key = `truck_check_${morningTruckCheckData.timestamp.slice(0,10)}`;
+  localStorage.setItem(key, JSON.stringify(morningTruckCheckData));
+  
+  addLog("Morning Truck Check", `${status.toUpperCase()} • Unit ${morningTruckCheckData.unitNumber} • ${morningTruckCheckData.crewMember1} & ${morningTruckCheckData.crewMember2}`);
+  
+  toast("Truck Check Complete", `Unit ${morningTruckCheckData.unitNumber} marked ${status}.`);
+  
+  // Generate PDF
+  exportTruckCheckPdf(morningTruckCheckData);
+  
+  bootstrap.Modal.getInstance(document.getElementById("truckCheckModal")).hide();
+}
+
+function exportTruckCheckPdf(data){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Morning Truck Check", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Service: ${data.service}`, 14, y); y += 6;
+  doc.text(`Unit Number: ${data.unitNumber}`, 14, y); y += 6;
+  doc.text(`Crew Member 1: ${data.crewMember1}`, 14, y); y += 6;
+  doc.text(`Crew Member 2: ${data.crewMember2}`, 14, y); y += 6;
+  doc.text(`Odometer: ${data.odometer}`, 14, y); y += 6;
+  doc.text(`Shift Time: ${data.shiftTime}`, 14, y); y += 6;
+  doc.text(`Status: ${data.status.toUpperCase()}`, 14, y); y += 6;
+  doc.text(`Completed: ${new Date(data.completedAt).toLocaleString()}`, 14, y); y += 10;
+  
+  doc.setFontSize(14);
+  doc.text("Checklist Items:", 14, y); y += 8;
+  
+  doc.setFontSize(9);
+  const checked = data.rows.filter(r => r.done);
+  const unchecked = data.rows.filter(r => !r.done);
+  
+  doc.text(`Checked: ${checked.length} / ${data.rows.length}`, 14, y); y += 6;
+  
+  if (unchecked.length > 0){
+    doc.text("UNCHECKED ITEMS:", 14, y); y += 5;
+    unchecked.slice(0, 30).forEach(r => {
+      if (y > 280){ doc.addPage(); y = 20; }
+      doc.text(`- ${r.item} (${r.category.toUpperCase()})`, 16, y);
+      y += 5;
+    });
+  }
+  
+  const fileName = `TruckCheck_${data.unitNumber}_${data.timestamp.slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Truck Check: ${fileName}`);
 }

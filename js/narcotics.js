@@ -50,11 +50,16 @@ function openNarcShiftCount(cfg){
 
   narcMeds.forEach(med => {
     const schedule = med.deaSchedule || "—";
+    const expectedQty = med.quantity || 0;
     tbody.append(`
       <tr>
-        <td><b>${escapeHtml(med.name)}</b></td>
+        <td>
+          <b>${escapeHtml(med.name)}</b>
+          <div class="small text-muted">Lot: ${escapeHtml(med.lotNumber || "—")}</div>
+          <div class="small text-muted">Exp: ${escapeHtml(med.expirationDate || "—")}</div>
+        </td>
         <td><span class="badge text-bg-dark">Sched ${escapeHtml(schedule)}</span></td>
-        <td><input type="number" class="form-control form-control-sm shift-expected" data-med="${escapeAttr(med.name)}" placeholder="0" /></td>
+        <td><input type="number" class="form-control form-control-sm shift-expected" data-med="${escapeAttr(med.name)}" placeholder="0" value="${expectedQty}" /></td>
         <td><input type="number" class="form-control form-control-sm shift-actual" data-med="${escapeAttr(med.name)}" placeholder="0" /></td>
         <td class="shift-discrepancy" data-med="${escapeAttr(med.name)}">—</td>
       </tr>
@@ -105,14 +110,59 @@ function confirmShiftCount(cfg){
   const logDetail = `Outgoing: ${s.user}, Incoming: ${incomingUser}, Counts: ${JSON.stringify(counts)}`;
   addLog("Narcotic Shift Count", logDetail);
 
+  // Generate PDF
+  exportNarcShiftCountPdf(s.user, incomingUser, counts, hasDiscrepancy);
+
   if (hasDiscrepancy){
     addLog("Narcotic Discrepancy (CRITICAL)", `Shift count discrepancies detected. See shift count log for details.`);
-    toast("Count complete (with discrepancies)", "Discrepancy log created.");
+    toast("Count complete (with discrepancies)", "Discrepancy log created. PDF exported.");
   } else {
-    toast("Count complete", "All counts matched.");
+    toast("Count complete", "All counts matched. PDF exported.");
   }
 
   bootstrap.Modal.getInstance(document.getElementById("narcShiftCountModal")).hide();
+}
+
+function exportNarcShiftCountPdf(outgoingUser, incomingUser, counts, hasDiscrepancy){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Narcotic Shift Count Sheet", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Date/Time: ${new Date().toLocaleString()}`, 14, y); y += 6;
+  doc.text(`Outgoing Provider: ${outgoingUser}`, 14, y); y += 6;
+  doc.text(`Incoming Provider: ${incomingUser}`, 14, y); y += 6;
+  doc.text(`Status: ${hasDiscrepancy ? "DISCREPANCY DETECTED" : "ALL COUNTS MATCHED"}`, 14, y); y += 10;
+  
+  doc.setFontSize(12);
+  doc.text("Narcotic Counts:", 14, y); y += 8;
+  
+  doc.setFontSize(9);
+  counts.forEach(c => {
+    if (y > 270){ doc.addPage(); y = 20; }
+    const status = c.discrepancy === 0 ? "OK" : `DISCREPANCY: ${c.discrepancy > 0 ? "+" : ""}${c.discrepancy}`;
+    doc.text(`${c.med}: Expected ${c.expected}, Actual ${c.actual} - ${status}`, 14, y);
+    y += 5;
+  });
+  
+  y += 15;
+  if (y > 250){ doc.addPage(); y = 20; }
+  doc.text("Provider Signatures:", 14, y); y += 10;
+  doc.text(`Outgoing: ________________________ (${outgoingUser})`, 14, y); y += 10;
+  doc.text(`Incoming: ________________________ (${incomingUser})`, 14, y);
+  
+  const fileName = `NarcShiftCount_${new Date().toISOString().slice(0,10)}_${Date.now()}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Narcotic Shift Count: ${fileName}`);
 }
 
 function openNarcTransfer(cfg){
@@ -142,12 +192,16 @@ function openNarcTransfer(cfg){
 
   narcMeds.forEach(med => {
     const schedule = med.deaSchedule || "—";
+    const defaultLot = med.lotNumber || "";
     tbody.append(`
       <tr>
-        <td><b>${escapeHtml(med.name)}</b></td>
+        <td>
+          <b>${escapeHtml(med.name)}</b>
+          <div class="small text-muted">Exp: ${escapeHtml(med.expirationDate || "—")}</div>
+        </td>
         <td><span class="badge text-bg-dark">Sched ${escapeHtml(schedule)}</span></td>
         <td><input type="number" class="form-control form-control-sm transfer-count" data-med="${escapeAttr(med.name)}" placeholder="0" /></td>
-        <td><input type="text" class="form-control form-control-sm transfer-lot" data-med="${escapeAttr(med.name)}" placeholder="Lot number" /></td>
+        <td><input type="text" class="form-control form-control-sm transfer-lot" data-med="${escapeAttr(med.name)}" placeholder="Lot number" value="${escapeAttr(defaultLot)}" /></td>
       </tr>
     `);
   });

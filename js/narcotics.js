@@ -287,6 +287,30 @@ function confirmPartialWaste(cfg){
     return;
   }
 
+  // Parse numeric values (strip units like "mcg", "mg", "mL")
+  const parseNumeric = (str) => {
+    const match = str.match(/[\d.]+/);
+    return match ? parseFloat(match[0]) : NaN;
+  };
+
+  const totalNum = parseNumeric(total);
+  const administeredNum = parseNumeric(administered);
+  const wastedNum = parseNumeric(wasted);
+
+  // Validate that values are numeric
+  if (isNaN(totalNum) || isNaN(administeredNum) || isNaN(wastedNum)){
+    toast("Invalid values", "Total, Administered, and Wasted must contain numeric values.");
+    return;
+  }
+
+  // Validate math: administered + wasted ≈ total (allow small floating point tolerance)
+  const sum = administeredNum + wastedNum;
+  const tolerance = 0.01; // Allow 0.01 unit tolerance for floating point
+  if (Math.abs(sum - totalNum) > tolerance){
+    toast("Amounts don't add up", `Administered (${administeredNum}) + Wasted (${wastedNum}) must equal Total (${totalNum}). Currently ${sum}.`);
+    return;
+  }
+
   const witness = authenticate(cfg, witnessUser, witnessPass);
   if (!witness){
     toast("Witness invalid", "Witness credentials not recognized.");

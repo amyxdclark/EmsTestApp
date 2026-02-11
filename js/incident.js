@@ -173,15 +173,29 @@ function exportIncidentPdf(cfg){
 }
 
 function incidentSelectedItems(){
-  return incidentItems.map(x => ({ category: x.category, isNarcotic: !!x.isNarcotic }));
+  return incidentItems.map(x => ({ 
+    category: x.category, 
+    isNarcotic: !!x.isNarcotic, 
+    item: x.item, 
+    doseQty: x.doseQty || "", 
+    details: x.details || "" 
+  }));
 }
 
 async function incidentCheckout(cfg){
   const items = incidentSelectedItems();
   const check = enforceCheckoutRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Checkout Denied", check.reason); return; }
+  
+  // Add confirmation dialog
   const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Incident Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``}`);
+  const msg = `Check out ${items.length} item(s) for incident${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+  
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})${it.details ? ` - ${it.details}` : ""}`).join(", ");
+  
+  addLog("Incident Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``}: ${itemDetails}`);
   toast("Checked out", `${items.length} items logged.`);
 }
 
@@ -190,10 +204,17 @@ async function incidentWaste(cfg){
   const check = enforceWasteRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Waste Denied", check.reason); return; }
 
+  // Add confirmation dialog
+  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
+  const msg = `Waste ${items.length} item(s) from incident${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+
   const witness = await requireWitnessIfNeeded(cfg, check.hasNarc);
   if (!witness.ok){ toast("Cancelled", "Witness not provided."); addLog("Incident Waste Cancelled", "No witness"); return; }
 
-  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Incident Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``}`);
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})${it.details ? ` - ${it.details}` : ""}`).join(", ");
+  
+  addLog("Incident Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``}: ${itemDetails}`);
   toast("Waste logged", `${items.length} items logged.`);
 }

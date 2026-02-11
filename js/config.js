@@ -152,6 +152,7 @@ const DEFAULT_CONFIG = {
     { id:"scanItem", label:"Scan an item", tag:"QR", meta:"Scan to add to checklist/incident", requiresLogin:true },
     { id:"checkoutMeds", label:"Check out meds", tag:"Med", meta:"Role-based checkout (narcotics only for Paramedic+)", requiresLogin:true },
     { id:"wasteMeds", label:"Waste meds", tag:"Med", meta:"Narcotics require witness Paramedic", requiresLogin:true },
+    { id:"partialDoseWaste", label:"Partial Dose Waste", tag:"DEA", meta:"Document partial narcotic administration + waste", requiresLogin:true },
     { id:"runTodaysCheck", label:"Run today's check", tag:"Checklist", meta:"Launch a scheduled check due today", requiresLogin:true },
     { id:"stockSupplies", label:"Stock supplies", tag:"Supply", meta:"Prototype stock action (log entry)", requiresLogin:true },
     { id:"transferItems", label:"Transfer items", tag:"Inventory", meta:"Prototype transfer action (log entry)", requiresLogin:true },

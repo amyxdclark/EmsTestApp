@@ -137,6 +137,7 @@ function handleScenario(cfg, id){
 
   if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
   if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
+  if (id === "partialDoseWaste"){ openPartialDoseWasteScenario(cfg); return; }
   if (id === "stockSupplies"){ openStockSupplies(cfg); return; }
   if (id === "transferItems"){ openTransferItems(cfg); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
@@ -219,6 +220,36 @@ function buildScheduledChecksForCurrent(cfg){
   return (svc.scheduledChecks || [])
     .filter(c => c.category === category)
     .map(c => ({ ...c, id: c.idTemplate.replace("{daily}", daily).replace("{monthly}", monthly) }));
+}
+
+function openPartialDoseWasteScenario(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  const role = getRole(cfg, s.roleId);
+  if (!role?.canWasteNarcotics){
+    toast("Not allowed", "Partial dose waste requires Paramedic+ role.");
+    return;
+  }
+
+  const narcMeds = getMaster(cfg, "meds").filter(m => m.isNarcotic);
+  if (narcMeds.length === 0){
+    toast("No narcotics", "No narcotic medications configured.");
+    return;
+  }
+
+  const medNames = narcMeds.map(m => m.name).join("\\n");
+  const medName = prompt(`Select narcotic medication:\\n\\n${medNames}\\n\\nEnter medication name:`);
+  
+  if (!medName) return;
+  
+  const selectedMed = narcMeds.find(m => m.name.toLowerCase() === medName.toLowerCase());
+  if (!selectedMed){
+    toast("Invalid selection", "Medication not found in narcotic list.");
+    return;
+  }
+
+  openPartialWaste(selectedMed.name, selectedMed.defaultDose || "");
+  addLog("Scenario", "Partial Dose Waste - " + selectedMed.name);
 }
 
 $(function(){
@@ -343,6 +374,15 @@ $(function(){
   });
 
   $("#btnWitnessConfirm").on("click", () => witnessConfirm(loadConfig()));
+  
+  // Handle witness modal dismiss (X button or backdrop click) to resolve hanging Promise
+  $("#witnessModal").on("hidden.bs.modal", function(){
+    if (witnessResolve){
+      const res = witnessResolve;
+      witnessResolve = null;
+      res({ ok: false });
+    }
+  });
 
   $("#btnConfirmShiftCount").on("click", () => confirmShiftCount(loadConfig()));
   $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));

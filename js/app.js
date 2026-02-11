@@ -180,6 +180,12 @@ function handleReport(cfg, id){
     showView("reports");
     return;
   }
+
+  if (id === "parLevelReport"){
+    generateParLevelReport(cfg);
+    showView("reports");
+    return;
+  }
 }
 
 function getLocationsForCurrent(cfg){
@@ -835,4 +841,203 @@ function confirmTransferItems(){
   toast("Transfer Complete", `${transferItemsData.items.length} items transferred from ${source} to ${destination}.`);
   
   bootstrap.Modal.getInstance(document.getElementById("transferModal")).hide();
+}
+
+// Par Level Comparison and Reorder Report
+function generateParLevelReport(cfg){
+  const supplies = getMaster(cfg, "supplies");
+  
+  // For demonstration, simulate current on-hand quantities
+  // In a real system, this would come from inventory tracking
+  const belowPar = [];
+  const atPar = [];
+  
+  supplies.forEach(item => {
+    const parLevel = parseInt(item.par || "0");
+    if (parLevel === 0) return;
+    
+    // Simulate current quantity (random between 50-150% of par)
+    const simulatedCurrent = Math.floor(parLevel * (0.5 + Math.random()));
+    
+    const entry = {
+      name: item.name,
+      par: parLevel,
+      current: simulatedCurrent,
+      needed: Math.max(0, parLevel - simulatedCurrent),
+      percentOfPar: Math.round((simulatedCurrent / parLevel) * 100)
+    };
+    
+    if (simulatedCurrent < parLevel) {
+      belowPar.push(entry);
+    } else {
+      atPar.push(entry);
+    }
+  });
+  
+  // Sort by percent of par (critical items first)
+  belowPar.sort((a, b) => a.percentOfPar - b.percentOfPar);
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Par Level Report</h5>
+      <div class="small-note mb-3">Generated: ${new Date().toLocaleString()}</div>
+      <div class="alert alert-info">
+        <b>Note:</b> Current quantities are simulated for demonstration purposes. In production, this would track actual inventory counts.
+      </div>
+  `;
+  
+  if (belowPar.length > 0){
+    html += `
+      <div class="alert alert-warning">
+        <h6 style="font-weight:950;">⚠️ Items Below Par Level (${belowPar.length} items)</h6>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Par Level</th>
+                <th>Current</th>
+                <th>Needed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    belowPar.forEach(e => {
+      const statusClass = e.percentOfPar < 50 ? 'danger' : 'warning';
+      html += `
+        <tr>
+          <td><b>${escapeHtml(e.name)}</b></td>
+          <td>${e.par}</td>
+          <td>${e.current}</td>
+          <td><b>${e.needed}</b></td>
+          <td><span class="badge text-bg-${statusClass}">${e.percentOfPar}% of par</span></td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    
+    html += `
+      <div class="panel-white mt-3 bg-light">
+        <h6 style="font-weight:950;">📋 Reorder List</h6>
+        <ul class="mb-0">
+    `;
+    
+    belowPar.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b>: Order ${e.needed} units (current: ${e.current}, par: ${e.par})</li>`;
+    });
+    
+    html += `</ul></div>`;
+  }
+  
+  if (atPar.length > 0){
+    html += `
+      <div class="alert alert-success mt-3">
+        <h6 style="font-weight:950;">✅ Items At or Above Par (${atPar.length} items)</h6>
+        <div class="small text-muted">These items are adequately stocked.</div>
+      </div>
+    `;
+  }
+  
+  if (belowPar.length === 0 && atPar.length === 0){
+    html += `<div class="alert alert-info">No supply items with par levels found.</div>`;
+  }
+  
+  html += `
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportParPdf">Export as PDF</button>
+        <button class="btn btn-outline-secondary ms-2" type="button" id="btnExportReorderCsv">Export Reorder List (CSV)</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportParPdf").off("click").on("click", () => {
+    exportParLevelPdf(belowPar, atPar);
+  });
+  
+  $("#btnExportReorderCsv").off("click").on("click", () => {
+    exportReorderCsv(belowPar);
+  });
+  
+  addLog("Report", "Par Level Report");
+  toast("Par Level Report", "Report generated.");
+}
+
+function exportParLevelPdf(belowPar, atPar){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Par Level Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 10;
+  
+  if (belowPar.length > 0){
+    doc.setFontSize(14);
+    doc.setTextColor(200, 100, 0);
+    doc.text(`Items Below Par (${belowPar.length})`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    
+    belowPar.slice(0, 50).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`${e.name}: Par ${e.par}, Current ${e.current}, Need ${e.needed} (${e.percentOfPar}%)`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (atPar.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.setTextColor(0, 150, 0);
+    doc.text(`Items At or Above Par (${atPar.length})`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text("All items adequately stocked.", 16, y);
+  }
+  
+  const fileName = `ParLevelReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Par Level Report: ${fileName}`);
+  toast("PDF Exported", fileName);
+}
+
+function exportReorderCsv(belowPar){
+  let csv = "Item,Par Level,Current Quantity,Quantity Needed,Percent of Par\n";
+  
+  belowPar.forEach(e => {
+    csv += `"${e.name}",${e.par},${e.current},${e.needed},${e.percentOfPar}%\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ReorderList_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+  
+  addLog("Export CSV", "Reorder List");
+  toast("CSV Exported", a.download);
 }

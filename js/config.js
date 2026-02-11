@@ -165,7 +165,8 @@ const DEFAULT_CONFIG = {
     { id:"history", label:"History", tag:"Log", meta:"View recent actions" },
     { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Filter by keywords" },
     { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Create a discrepancy record" },
-    { id:"expirationReport", label:"Expiration Report", tag:"Report", meta:"Items expiring soon" }
+    { id:"expirationReport", label:"Expiration Report", tag:"Report", meta:"Items expiring soon" },
+    { id:"parLevelReport", label:"Par Level Report", tag:"Inventory", meta:"Items below par levels" }
   ],
   docs:{
     login:{ title:"Login (Prototype)", subtitle:"Demo accounts and role assignment",

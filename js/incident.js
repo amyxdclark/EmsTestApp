@@ -1,8 +1,42 @@
 let incidentItems = [];
 let incidentScanner = null;
 
+function saveIncidentItemsToStorage(){
+  try {
+    localStorage.setItem("mc_incident_items_v1", JSON.stringify(incidentItems));
+  } catch(e) {
+    console.error("Failed to save incident items to localStorage:", e);
+  }
+}
+
+function loadIncidentItemsFromStorage(){
+  try {
+    const raw = localStorage.getItem("mc_incident_items_v1");
+    if (raw){
+      incidentItems = JSON.parse(raw);
+      return true;
+    }
+  } catch(e) {
+    console.error("Failed to load incident items from localStorage:", e);
+  }
+  return false;
+}
+
+function clearIncidentItemsFromStorage(){
+  try {
+    localStorage.removeItem("mc_incident_items_v1");
+  } catch(e) {
+    console.error("Failed to clear incident items from localStorage:", e);
+  }
+}
+
 function openIncident(cfg){
-  incidentItems = [];
+  // Try to restore incident items from localStorage
+  const restored = loadIncidentItemsFromStorage();
+  if (!restored){
+    incidentItems = [];
+  }
+  
   $("#incidentNumber").val("");
   $("#incidentNotes").val("");
   hydrateIncidentLocationDropdown(cfg);
@@ -17,7 +51,7 @@ function openIncident(cfg){
   $("#btnIncidentAddNarc").prop("disabled", !canNarc);
 
   new bootstrap.Modal(document.getElementById("incidentModal")).show();
-  addLog("Open Incident", "Create incident PDF");
+  addLog("Open Incident", "Create incident PDF" + (restored ? " (restored from storage)" : ""));
 }
 
 function renderIncidentRows(cfg){
@@ -54,10 +88,12 @@ function renderIncidentRows(cfg){
     const i = +$(this).data("i-idx");
     const f = $(this).data("field");
     incidentItems[i][f] = $(this).val();
+    saveIncidentItemsToStorage();
   });
   body.find("button[data-i-del]").off("click").on("click", function(){
     const i = +$(this).data("i-del");
     incidentItems.splice(i,1);
+    saveIncidentItemsToStorage();
     renderIncidentRows(cfg);
   });
 }
@@ -81,6 +117,7 @@ function addIncidentItem(cfg, srcType, x){
   }
 
   incidentItems.unshift(row);
+  saveIncidentItemsToStorage();
   renderIncidentRows(cfg);
   addLog("Incident Add", `${row.category.toUpperCase()}${row.isNarcotic ? " (NARC)" : ""}: ${row.item}`);
 }
@@ -170,19 +207,40 @@ function exportIncidentPdf(cfg){
   doc.save(`Incident_${inc}.pdf`);
   addLog("Export PDF", `Incident ${inc} (${incidentItems.length} items)`);
   toast("PDF Created", `Incident ${inc} exported.`);
+  
+  // Clear incident items from storage after successful export
+  incidentItems = [];
+  clearIncidentItemsFromStorage();
 }
 
 function incidentSelectedItems(){
-  return incidentItems.map(x => ({ category: x.category, isNarcotic: !!x.isNarcotic }));
+  return incidentItems.map(x => ({ 
+    category: x.category, 
+    isNarcotic: !!x.isNarcotic, 
+    item: x.item, 
+    doseQty: x.doseQty || "", 
+    details: x.details || "" 
+  }));
 }
 
 async function incidentCheckout(cfg){
   const items = incidentSelectedItems();
   const check = enforceCheckoutRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Checkout Denied", check.reason); return; }
+  
+  // Add confirmation dialog
   const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Incident Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``}`);
-  toast("Checked out", `${items.length} items logged.`);
+  const msg = `Check out ${items.length} item(s) for incident${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+  
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})${it.details ? ` - ${it.details}` : ""}`).join(", ");
+  
+  // Generate transaction ID for this checkout
+  const txId = generateTransactionId();
+  
+  addLog("Incident Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``}: ${itemDetails}`, txId);
+  toast("Checked out", `${items.length} items logged. TX: ${txId}`);
 }
 
 async function incidentWaste(cfg){
@@ -190,10 +248,20 @@ async function incidentWaste(cfg){
   const check = enforceWasteRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Waste Denied", check.reason); return; }
 
+  // Add confirmation dialog
+  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
+  const msg = `Waste ${items.length} item(s) from incident${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+
   const witness = await requireWitnessIfNeeded(cfg, check.hasNarc);
   if (!witness.ok){ toast("Cancelled", "Witness not provided."); addLog("Incident Waste Cancelled", "No witness"); return; }
 
-  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Incident Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``}`);
-  toast("Waste logged", `${items.length} items logged.`);
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})${it.details ? ` - ${it.details}` : ""}`).join(", ");
+  
+  // Generate transaction ID for this waste
+  const txId = generateTransactionId();
+  
+  addLog("Incident Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``}: ${itemDetails}`, txId);
+  toast("Waste logged", `${items.length} items logged. TX: ${txId}`);
 }

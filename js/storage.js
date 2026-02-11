@@ -15,19 +15,28 @@ function clearSession(){ localStorage.removeItem(STORAGE_KEYS.session); }
 
 function getLogs(){ return JSON.parse(localStorage.getItem(STORAGE_KEYS.logs) || "[]"); }
 function setLogs(arr){ localStorage.setItem(STORAGE_KEYS.logs, JSON.stringify(arr)); }
-function addLog(action, details){
+function addLog(action, details, transactionId){
   const s = getSession() || {};
   const logs = getLogs();
-  logs.unshift({
+  const logEntry = {
     t: new Date().toISOString(),
     user: s.user || "—",
     service: s.service || "—",
     role: s.roleId || "—",
     mode: s.modeKey || "—",
     action, details
-  });
+  };
+  if (transactionId){
+    logEntry.transactionId = transactionId;
+  }
+  logs.unshift(logEntry);
   setLogs(logs.slice(0, 250));
   renderLogs();
+  return transactionId || logEntry.t; // Return provided transactionId or timestamp as fallback
+}
+
+function generateTransactionId(){
+  return `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 function getChecksState(){ return JSON.parse(localStorage.getItem(STORAGE_KEYS.checks) || "{}"); }

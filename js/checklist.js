@@ -213,9 +213,19 @@ function checkoutFromChecklist(){
   const check = enforceCheckoutRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Checkout Denied", check.reason); return; }
 
+  // Add confirmation dialog
   const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``} • ${currentChecklist.title}`);
-  toast("Checked out", `${items.length} items logged.`);
+  const msg = `Check out ${items.length} item(s)${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+
+  // Generate transaction ID for this checkout
+  const txId = generateTransactionId();
+
+  addLog("Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``} • ${currentChecklist.title}: ${itemDetails}`, txId);
+  toast("Checked out", `${items.length} items logged. TX: ${txId}`);
 }
 
 async function wasteFromChecklist(){
@@ -224,12 +234,22 @@ async function wasteFromChecklist(){
   const check = enforceWasteRules(cfg, items);
   if (!check.ok){ toast("Not allowed", check.reason); addLog("Waste Denied", check.reason); return; }
 
+  // Add confirmation dialog
+  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
+  const msg = `Waste ${items.length} item(s)${narcCount ? ` including ${narcCount} narcotic(s)` : ""}?`;
+  if (!confirm(msg)) return;
+
   const witness = await requireWitnessIfNeeded(cfg, check.hasNarc);
   if (!witness.ok){ toast("Cancelled", "Witness not provided."); addLog("Waste Cancelled", "No witness"); return; }
 
-  const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
-  addLog("Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``} • ${currentChecklist.title}`);
-  toast("Waste logged", `${items.length} items logged.`);
+  // Build itemized details string
+  const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+
+  // Generate transaction ID for this waste
+  const txId = generateTransactionId();
+
+  addLog("Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``} • ${currentChecklist.title}: ${itemDetails}`, txId);
+  toast("Waste logged", `${items.length} items logged. TX: ${txId}`);
 }
 
 function discrepancyFromChecklist(){

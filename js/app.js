@@ -137,6 +137,9 @@ function handleScenario(cfg, id){
 
   if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
   if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
+  if (id === "partialDoseWaste"){ openPartialDoseWasteScenario(cfg); return; }
+  if (id === "returnToStock"){ openReturnToStock(cfg); return; }
+  if (id === "voidCheckout"){ openVoidCheckout(cfg); return; }
   if (id === "stockSupplies"){ openStockSupplies(cfg); return; }
   if (id === "transferItems"){ openTransferItems(cfg); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
@@ -219,6 +222,28 @@ function buildScheduledChecksForCurrent(cfg){
   return (svc.scheduledChecks || [])
     .filter(c => c.category === category)
     .map(c => ({ ...c, id: c.idTemplate.replace("{daily}", daily).replace("{monthly}", monthly) }));
+}
+
+function openPartialDoseWasteScenario(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  const role = getRole(cfg, s.roleId);
+  if (!role?.canWasteNarcotics){
+    toast("Not allowed", "Partial dose waste requires Paramedic+ role.");
+    return;
+  }
+
+  const narcMeds = getMaster(cfg, "meds").filter(m => m.isNarcotic);
+  if (narcMeds.length === 0){
+    toast("No narcotics", "No narcotic medications configured.");
+    return;
+  }
+
+  // Use the existing picker UI instead of prompt for better UX
+  openPicker(cfg, "Select Narcotic for Partial Waste", "Choose medication for partial dose waste documentation", { forceType: "narc" }, (type, med) => {
+    openPartialWaste(med.name, med.defaultDose || "");
+    addLog("Scenario", "Partial Dose Waste - " + med.name);
+  });
 }
 
 $(function(){
@@ -343,10 +368,29 @@ $(function(){
   });
 
   $("#btnWitnessConfirm").on("click", () => witnessConfirm(loadConfig()));
+  
+  // Handle witness modal dismiss (X button or backdrop click) to resolve hanging Promise
+  $("#witnessModal").on("hidden.bs.modal", function(){
+    if (witnessResolve){
+      const res = witnessResolve;
+      witnessResolve = null;
+      res({ ok: false });
+    }
+  });
 
   $("#btnConfirmShiftCount").on("click", () => confirmShiftCount(loadConfig()));
   $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));
   $("#btnConfirmPartialWaste").on("click", () => confirmPartialWaste(loadConfig()));
+  
+  $("#btnReturnAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Return", "Select an item", { forceType:null }, (type, item) => {
+      addReturnItem(cfg, type, item);
+    });
+  });
+  $("#btnConfirmReturn").on("click", () => confirmReturnToStock(loadConfig()));
+  
+  $("#btnConfirmVoid").on("click", () => confirmVoidCheckout(loadConfig()));
 
   $("#btnMarkInService").on("click", () => markTruckStatus("in-service"));
   $("#btnMarkOutOfService").on("click", () => markTruckStatus("out-of-service"));

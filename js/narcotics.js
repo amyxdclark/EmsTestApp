@@ -287,6 +287,30 @@ function confirmPartialWaste(cfg){
     return;
   }
 
+  // Parse numeric values (strip units like "mcg", "mg", "mL")
+  const extractNumericValue = (str) => {
+    const match = str.match(/\d+(\.\d+)?/);
+    return match ? parseFloat(match[0]) : NaN;
+  };
+
+  const totalNum = extractNumericValue(total);
+  const administeredNum = extractNumericValue(administered);
+  const wastedNum = extractNumericValue(wasted);
+
+  // Validate that values are numeric
+  if (isNaN(totalNum) || isNaN(administeredNum) || isNaN(wastedNum)){
+    toast("Invalid values", "Total, Administered, and Wasted must contain numeric values.");
+    return;
+  }
+
+  // Validate math: administered + wasted ≈ total (allow small floating point tolerance)
+  const sum = administeredNum + wastedNum;
+  const tolerance = 0.01; // Allow 0.01 unit tolerance for floating point
+  if (Math.abs(sum - totalNum) > tolerance){
+    toast("Amounts don't add up", `Administered (${administeredNum}) + Wasted (${wastedNum}) must equal Total (${totalNum}). Currently ${sum}.`);
+    return;
+  }
+
   const witness = authenticate(cfg, witnessUser, witnessPass);
   if (!witness){
     toast("Witness invalid", "Witness credentials not recognized.");
@@ -306,8 +330,206 @@ function confirmPartialWaste(cfg){
 
   const logDetail = `Med: ${med}, Total: ${total}, Administered: ${administered}, Wasted: ${wasted}, Method: ${method}${lot ? `, Lot: ${lot}` : ""}, Witness: ${witnessUser}`;
   addLog("Partial Dose Waste", logDetail);
+  
+  // Generate PDF documentation for partial waste
+  exportPartialWastePdf(s.user, med, total, administered, wasted, method, lot, witnessUser);
+  
   toast("Waste logged", `${med} partial waste documented.`);
 
   bootstrap.Modal.getInstance(document.getElementById("partialWasteModal")).hide();
+}
+
+function exportPartialWastePdf(provider, medication, total, administered, wasted, method, lot, witnessUser){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Partial Dose Waste Documentation", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Date/Time: ${new Date().toLocaleString()}`, 14, y); y += 6;
+  doc.text(`Provider: ${provider}`, 14, y); y += 6;
+  doc.text(`Witness: ${witnessUser}`, 14, y); y += 10;
+  
+  doc.setFontSize(12);
+  doc.text("Medication Information:", 14, y); y += 8;
+  
+  doc.setFontSize(10);
+  doc.text(`Medication: ${medication}`, 14, y); y += 6;
+  doc.text(`Total Dose: ${total}`, 14, y); y += 6;
+  doc.text(`Amount Administered: ${administered}`, 14, y); y += 6;
+  doc.text(`Amount Wasted: ${wasted}`, 14, y); y += 6;
+  doc.text(`Waste Method: ${method}`, 14, y); y += 6;
+  if (lot){
+    doc.text(`Lot Number: ${lot}`, 14, y); y += 6;
+  }
+  
+  y += 10;
+  doc.setFontSize(9);
+  doc.text("This document certifies that the above medication was partially administered", 14, y); y += 5;
+  doc.text("and the remaining portion was wasted according to DEA regulations.", 14, y); y += 10;
+  
+  y += 15;
+  if (y > 250){ doc.addPage(); y = 20; }
+  doc.text("Provider Signature:", 14, y); y += 10;
+  doc.text(`________________________ (${provider})`, 14, y); y += 15;
+  doc.text("Witness Signature:", 14, y); y += 10;
+  doc.text(`________________________ (${witnessUser})`, 14, y);
+  
+  const fileName = `PartialWaste_${medication.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Partial Waste: ${fileName}`);
+}
+
+let returnItems = [];
+
+function openReturnToStock(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  returnItems = [];
+  $("#returnReason").val("");
+  renderReturnItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("returnToStockModal")).show();
+  addLog("Open Return to Stock", "Return items scenario");
+}
+
+function renderReturnItems(cfg){
+  const body = $("#returnItemsBody");
+  body.empty();
+  
+  const allMeds = getMaster(cfg, "meds");
+  
+  returnItems.forEach((it, idx) => {
+    const badge = it.category === "sup"
+      ? `<span class="badge text-bg-danger">SUP</span>`
+      : (it.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
+    
+    body.append(`
+      <tr>
+        <td>${badge}</td>
+        <td><b>${escapeHtml(it.item)}</b></td>
+        <td><input class="form-control form-control-sm" data-r-idx="${idx}" data-field="doseQty" value="${escapeAttr(it.doseQty || "")}"/></td>
+        <td><button class="btn btn-sm btn-outline-danger" style="border-radius: 999px;" data-r-del="${idx}">X</button></td>
+      </tr>
+    `);
+  });
+  
+  body.find("input[data-r-idx]").off("input").on("input", function(){
+    const i = +$(this).data("r-idx");
+    const f = $(this).data("field");
+    returnItems[i][f] = $(this).val();
+  });
+  body.find("button[data-r-del]").off("click").on("click", function(){
+    const i = +$(this).data("r-del");
+    returnItems.splice(i, 1);
+    renderReturnItems(cfg);
+  });
+}
+
+function addReturnItem(cfg, type, item){
+  const row = {
+    category: (type === "sup") ? "sup" : "med",
+    isNarcotic: (type === "narc") ? true : !!item.isNarcotic,
+    item: item.name,
+    doseQty: (type === "sup") ? (item.par || "") : (item.defaultDose || "")
+  };
+  
+  returnItems.unshift(row);
+  renderReturnItems(cfg);
+}
+
+async function confirmReturnToStock(cfg){
+  const s = getSession();
+  if (!s) return;
+  
+  const reason = ($("#returnReason").val() || "").trim();
+  if (!reason){
+    toast("Missing reason", "Please provide a reason for the return.");
+    return;
+  }
+  
+  if (returnItems.length === 0){
+    toast("No items", "Add at least one item to return.");
+    return;
+  }
+  
+  const hasNarcotic = returnItems.some(it => it.category === "med" && it.isNarcotic);
+  
+  // Require witness for narcotic returns
+  if (hasNarcotic){
+    const witness = await requireWitnessIfNeeded(cfg, true);
+    if (!witness.ok){
+      toast("Cancelled", "Witness required for narcotic returns.");
+      addLog("Return to Stock Cancelled", "No witness for narcotic return");
+      return;
+    }
+    
+    const itemDetails = returnItems.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+    addLog("Return to Stock", `${returnItems.length} items (witness=${witness.witnessUser}): ${itemDetails}. Reason: ${reason}`);
+    toast("Return logged", `${returnItems.length} items returned to stock.`);
+  } else {
+    const itemDetails = returnItems.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+    addLog("Return to Stock", `${returnItems.length} items: ${itemDetails}. Reason: ${reason}`);
+    toast("Return logged", `${returnItems.length} items returned to stock.`);
+  }
+  
+  bootstrap.Modal.getInstance(document.getElementById("returnToStockModal")).hide();
+}
+
+function openVoidCheckout(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  $("#voidTransactionId").val("");
+  $("#voidReason").val("");
+  
+  new bootstrap.Modal(document.getElementById("voidCheckoutModal")).show();
+  addLog("Open Void Checkout", "Void checkout scenario");
+}
+
+function confirmVoidCheckout(cfg){
+  const s = getSession();
+  if (!s) return;
+  
+  const txId = ($("#voidTransactionId").val() || "").trim();
+  const reason = ($("#voidReason").val() || "").trim();
+  
+  if (!txId){
+    toast("Missing transaction ID", "Please enter the transaction ID to void.");
+    return;
+  }
+  
+  if (!reason){
+    toast("Missing reason", "Please provide a reason for voiding the checkout.");
+    return;
+  }
+  
+  // Check if transaction exists in logs
+  const logs = getLogs();
+  const txLog = logs.find(log => log.transactionId === txId);
+  
+  if (!txLog){
+    toast("Transaction not found", `No transaction found with ID: ${txId}`);
+    return;
+  }
+  
+  if (txLog.action === "Void Checkout"){
+    toast("Already voided", "This transaction has already been voided.");
+    return;
+  }
+  
+  addLog("Void Checkout", `Voided transaction ${txId}. Original: ${txLog.action} - ${txLog.details}. Reason: ${reason}`, txId);
+  toast("Checkout voided", `Transaction ${txId} has been voided.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("voidCheckoutModal")).hide();
 }
 

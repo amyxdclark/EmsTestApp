@@ -138,6 +138,8 @@ function handleScenario(cfg, id){
   if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
   if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
   if (id === "partialDoseWaste"){ openPartialDoseWasteScenario(cfg); return; }
+  if (id === "returnToStock"){ openReturnToStock(cfg); return; }
+  if (id === "voidCheckout"){ openVoidCheckout(cfg); return; }
   if (id === "stockSupplies"){ openStockSupplies(cfg); return; }
   if (id === "transferItems"){ openTransferItems(cfg); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
@@ -387,6 +389,16 @@ $(function(){
   $("#btnConfirmShiftCount").on("click", () => confirmShiftCount(loadConfig()));
   $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));
   $("#btnConfirmPartialWaste").on("click", () => confirmPartialWaste(loadConfig()));
+  
+  $("#btnReturnAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Return", "Select an item", { forceType:null }, (type, item) => {
+      addReturnItem(cfg, type, item);
+    });
+  });
+  $("#btnConfirmReturn").on("click", () => confirmReturnToStock(loadConfig()));
+  
+  $("#btnConfirmVoid").on("click", () => confirmVoidCheckout(loadConfig()));
 
   $("#btnMarkInService").on("click", () => markTruckStatus("in-service"));
   $("#btnMarkOutOfService").on("click", () => markTruckStatus("out-of-service"));

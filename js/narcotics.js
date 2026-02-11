@@ -388,3 +388,148 @@ function exportPartialWastePdf(provider, medication, total, administered, wasted
   addLog("Export PDF", `Partial Waste: ${fileName}`);
 }
 
+let returnItems = [];
+
+function openReturnToStock(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  returnItems = [];
+  $("#returnReason").val("");
+  renderReturnItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("returnToStockModal")).show();
+  addLog("Open Return to Stock", "Return items scenario");
+}
+
+function renderReturnItems(cfg){
+  const body = $("#returnItemsBody");
+  body.empty();
+  
+  const allMeds = getMaster(cfg, "meds");
+  
+  returnItems.forEach((it, idx) => {
+    const badge = it.category === "sup"
+      ? `<span class="badge text-bg-danger">SUP</span>`
+      : (it.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
+    
+    body.append(`
+      <tr>
+        <td>${badge}</td>
+        <td><b>${escapeHtml(it.item)}</b></td>
+        <td><input class="form-control form-control-sm" data-r-idx="${idx}" data-field="doseQty" value="${escapeAttr(it.doseQty || "")}"/></td>
+        <td><button class="btn btn-sm btn-outline-danger" style="border-radius: 999px;" data-r-del="${idx}">X</button></td>
+      </tr>
+    `);
+  });
+  
+  body.find("input[data-r-idx]").off("input").on("input", function(){
+    const i = +$(this).data("r-idx");
+    const f = $(this).data("field");
+    returnItems[i][f] = $(this).val();
+  });
+  body.find("button[data-r-del]").off("click").on("click", function(){
+    const i = +$(this).data("r-del");
+    returnItems.splice(i, 1);
+    renderReturnItems(cfg);
+  });
+}
+
+function addReturnItem(cfg, type, item){
+  const row = {
+    category: (type === "sup") ? "sup" : "med",
+    isNarcotic: (type === "narc") ? true : !!item.isNarcotic,
+    item: item.name,
+    doseQty: (type === "sup") ? (item.par || "") : (item.defaultDose || "")
+  };
+  
+  returnItems.unshift(row);
+  renderReturnItems(cfg);
+}
+
+async function confirmReturnToStock(cfg){
+  const s = getSession();
+  if (!s) return;
+  
+  const reason = ($("#returnReason").val() || "").trim();
+  if (!reason){
+    toast("Missing reason", "Please provide a reason for the return.");
+    return;
+  }
+  
+  if (returnItems.length === 0){
+    toast("No items", "Add at least one item to return.");
+    return;
+  }
+  
+  const hasNarcotic = returnItems.some(it => it.category === "med" && it.isNarcotic);
+  
+  // Require witness for narcotic returns
+  if (hasNarcotic){
+    const witness = await requireWitnessIfNeeded(cfg, true);
+    if (!witness.ok){
+      toast("Cancelled", "Witness required for narcotic returns.");
+      addLog("Return to Stock Cancelled", "No witness for narcotic return");
+      return;
+    }
+    
+    const itemDetails = returnItems.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+    addLog("Return to Stock", `${returnItems.length} items (witness=${witness.witnessUser}): ${itemDetails}. Reason: ${reason}`);
+    toast("Return logged", `${returnItems.length} items returned to stock.`);
+  } else {
+    const itemDetails = returnItems.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
+    addLog("Return to Stock", `${returnItems.length} items: ${itemDetails}. Reason: ${reason}`);
+    toast("Return logged", `${returnItems.length} items returned to stock.`);
+  }
+  
+  bootstrap.Modal.getInstance(document.getElementById("returnToStockModal")).hide();
+}
+
+function openVoidCheckout(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  $("#voidTransactionId").val("");
+  $("#voidReason").val("");
+  
+  new bootstrap.Modal(document.getElementById("voidCheckoutModal")).show();
+  addLog("Open Void Checkout", "Void checkout scenario");
+}
+
+function confirmVoidCheckout(cfg){
+  const s = getSession();
+  if (!s) return;
+  
+  const txId = ($("#voidTransactionId").val() || "").trim();
+  const reason = ($("#voidReason").val() || "").trim();
+  
+  if (!txId){
+    toast("Missing transaction ID", "Please enter the transaction ID to void.");
+    return;
+  }
+  
+  if (!reason){
+    toast("Missing reason", "Please provide a reason for voiding the checkout.");
+    return;
+  }
+  
+  // Check if transaction exists in logs
+  const logs = getLogs();
+  const txLog = logs.find(log => log.transactionId === txId);
+  
+  if (!txLog){
+    toast("Transaction not found", `No transaction found with ID: ${txId}`);
+    return;
+  }
+  
+  if (txLog.action === "Void Checkout"){
+    toast("Already voided", "This transaction has already been voided.");
+    return;
+  }
+  
+  addLog("Void Checkout", `Voided transaction ${txId}. Original: ${txLog.action} - ${txLog.details}. Reason: ${reason}`, txId);
+  toast("Checkout voided", `Transaction ${txId} has been voided.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("voidCheckoutModal")).hide();
+}
+

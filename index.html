@@ -785,6 +785,87 @@
     </div>
   </div>
 
+  <!-- RETURN TO STOCK MODAL -->
+  <div class="modal fade" id="returnToStockModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Return Items to Stock</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Return items with reason (narcotics require witness).</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            Select items to return to stock. Provide a reason for the return (e.g., "Patient refusal", "Incident cancelled", "Checkout error").
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Reason for Return</label>
+            <textarea class="form-control" id="returnReason" rows="2" placeholder="e.g., Patient refusal, Incident cancelled, Checkout error"></textarea>
+          </div>
+
+          <h6 style="font-weight:950;">Items to Return</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-lite">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Item</th>
+                  <th style="width:150px;">Dose/Qty</th>
+                  <th style="width:80px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="returnItemsBody"></tbody>
+            </table>
+          </div>
+
+          <button class="btn btn-sm btn-outline-primary" id="btnReturnAddItem">+ Add Item</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" type="button" id="btnConfirmReturn">Confirm Return</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOID CHECKOUT MODAL -->
+  <div class="modal fade" id="voidCheckoutModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Void Checkout</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Mark a previous checkout as void.</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning">
+            Enter the transaction ID of the checkout to void and provide a reason.
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Transaction ID</label>
+            <input class="form-control" id="voidTransactionId" placeholder="e.g., TX-1234567890-abc123" />
+            <div class="small-note mt-1">Find transaction ID in the activity logs (Reports view).</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Reason for Void</label>
+            <textarea class="form-control" id="voidReason" rows="2" placeholder="e.g., Accidental checkout, Duplicate entry, Item not actually used"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" type="button" id="btnConfirmVoid">Confirm Void</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MORNING TRUCK CHECK MODAL -->
   <div class="modal fade" id="truckCheckModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">

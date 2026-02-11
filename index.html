@@ -28,15 +28,21 @@
       --sc-bg2:#4b0f12;
       --sc-accent:#ff6b6b;
 
-      --card-border: rgba(255,255,255,.55);
       --text: rgba(255,255,255,.92);
-      --text-muted: rgba(255,255,255,.70);
+      --text-muted: rgba(255,255,255,.72);
+
+      --card-border: rgba(255,255,255,.55);
+      --glass: rgba(255,255,255,.10);
+      --glass2: rgba(255,255,255,.07);
 
       --radius-xl: 22px;
       --radius-lg: 18px;
       --radius-md: 14px;
+
+      --shadow-soft: 0 12px 34px rgba(0,0,0,.18);
     }
 
+    /* ====== BACKGROUND / TYPO ====== */
     body{
       min-height:100vh;
       color: var(--text);
@@ -47,13 +53,16 @@
       background: linear-gradient(135deg, var(--sc-bg1), var(--sc-bg2));
     }
 
+    /* ====== NAV ====== */
     .topbar{
       backdrop-filter: blur(10px);
-      background: rgba(0,0,0,.20);
+      background: rgba(0,0,0,.25);
       border-bottom: 1px solid rgba(255,255,255,.15);
     }
     .navbar .nav-link, .navbar-brand { color: var(--text) !important; }
     .nav-link.active{ text-decoration: underline; text-underline-offset: .35rem; }
+    .navbar-toggler{ border:none; }
+    .navbar-toggler:focus{ box-shadow:none; }
 
     .brand-badge{
       border: 1px solid var(--card-border);
@@ -64,7 +73,7 @@
       align-items:center;
       background: rgba(255,255,255,.08);
       color: var(--text);
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: .2px;
     }
     .mini-chip{
@@ -77,7 +86,6 @@
       color: var(--text);
       white-space: nowrap;
     }
-
     .pill{
       border: 1px solid var(--card-border);
       border-radius: 999px;
@@ -88,12 +96,13 @@
       white-space: nowrap;
     }
 
+    /* ====== BUTTONS ====== */
     .btn-white{
       background: #fff;
       color: #0b1112;
       border: 1px solid rgba(255,255,255,.85);
       border-radius: 999px;
-      font-weight: 800;
+      font-weight: 900;
       padding: .55rem 1rem;
     }
     .btn-outline-white{
@@ -101,10 +110,16 @@
       border: 1px solid var(--card-border);
       border-radius: 999px;
       color: var(--text);
-      font-weight: 800;
+      font-weight: 900;
       padding: .55rem 1rem;
     }
+    .btn-outline-white:focus, .btn-white:focus{ box-shadow:none; }
+    .btn-dark, .btn-success, .btn-danger, .btn-outline-secondary, .btn-outline-danger{
+      border-radius: 999px;
+      font-weight: 900;
+    }
 
+    /* ====== LAYOUT ====== */
     .page-wrap{
       max-width: 1180px;
       margin: 0 auto;
@@ -115,7 +130,7 @@
     .section-card{
       border: 1px solid var(--card-border);
       border-radius: var(--radius-xl);
-      background: rgba(255,255,255,.08);
+      background: var(--glass2);
       padding: 1rem;
       margin-top: 1rem;
     }
@@ -128,20 +143,20 @@
       flex-wrap: wrap;
       padding: .25rem .25rem .75rem .25rem;
     }
-
     .section-title{
       display:flex;
       align-items:center;
       gap: .6rem;
       margin: 0;
       font-size: 1.15rem;
-      font-weight: 900;
+      font-weight: 950;
+      letter-spacing: .2px;
     }
-
     .section-sub{
       color: var(--text-muted);
-      font-size: .9rem;
+      font-size: .92rem;
       margin: .2rem 0 0 0;
+      line-height: 1.25rem;
     }
 
     .help-q{
@@ -154,7 +169,7 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-weight: 900;
+      font-weight: 950;
       cursor:pointer;
       user-select:none;
     }
@@ -181,19 +196,13 @@
       align-items:center;
       justify-content: space-between;
       gap: 10px;
+      transition: transform .06s ease-in-out;
     }
-    .square-btn .label{
-      font-weight: 900;
-      line-height: 1.1;
-    }
-    .square-btn .meta{
-      font-size: .85rem;
-      color: rgba(0,0,0,.60);
-      margin-top: 6px;
-    }
+    .square-btn .label{ font-weight: 950; line-height: 1.15; }
+    .square-btn .meta{ font-size: .85rem; color: rgba(0,0,0,.60); margin-top: 6px; }
     .square-btn .tag{
       font-size: .75rem;
-      font-weight: 900;
+      font-weight: 950;
       padding: .25rem .5rem;
       border-radius: 999px;
       border: 1px solid rgba(0,0,0,.12);
@@ -206,18 +215,107 @@
     @media (min-width: 576px){ .square-btn{ grid-column: span 4; } }
     @media (min-width: 992px){ .square-btn{ grid-column: span 3; } }
 
+    /* ====== PANEL WHITE (INSIDE SECTIONS) ====== */
     .panel-white{
-      background: #fff;
+      background: rgba(255,255,255,.96);
       border-radius: var(--radius-lg);
       border: 1px solid rgba(255,255,255,.85);
       padding: 14px;
       color: #0b1112;
+      box-shadow: var(--shadow-soft);
     }
     .small-note{ font-size: .9rem; color: rgba(0,0,0,.65); }
 
     .view{ display:none; }
     .view.active{ display:block; }
 
+    /* ====== MOBILE FRIENDLY TABLES ====== */
+    .table-responsive{
+      border-radius: var(--radius-md);
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.92);
+    }
+    .table-lite{
+      margin-bottom:0;
+      background: transparent;
+    }
+    .table-lite thead th{
+      background: rgba(0,0,0,.04);
+      font-weight: 950;
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+    .table-lite td, .table-lite th{
+      padding: .6rem .65rem;
+      vertical-align: middle;
+    }
+    .table-lite td b{ font-weight: 900; }
+
+    /* Make inputs in tables mobile-friendly */
+    .table-lite input.form-control-sm{
+      min-width: 120px;
+      border-radius: 12px;
+    }
+
+    /* ====== MODALS (THEMED) ====== */
+    .modal-content{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 30px 80px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+
+    /* Header gradient changes with mode */
+    body:not(.mode-supply) .modal-header{
+      background: linear-gradient(135deg, rgba(4,26,24,.98), rgba(10,52,49,.98));
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,.18);
+    }
+    body.mode-supply .modal-header{
+      background: linear-gradient(135deg, rgba(27,5,6,.98), rgba(75,15,18,.98));
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,.18);
+    }
+    .modal-header .btn-close{
+      filter: invert(1);
+      opacity: .9;
+    }
+    .modal-body{
+      background: rgba(255,255,255,.98);
+      color: #0b1112;
+    }
+    .modal-footer{
+      background: rgba(255,255,255,.98);
+      border-top: 1px solid rgba(0,0,0,.08);
+    }
+    .modal .small-note{ color: rgba(0,0,0,.65); }
+    .modal .alert{ border-radius: 16px; }
+    .modal .form-control, .modal .form-select{
+      border-radius: 14px;
+    }
+
+    /* QR Regions in modals */
+    #qrRegionWrap .p-2, #qrIncidentWrap .p-2{
+      border-radius: 16px !important;
+    }
+    #qr-reader, #qr-reader-incident{
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    /* Better modal spacing on mobile */
+    @media (max-width: 576px){
+      .modal-dialog{ margin: .75rem; }
+      .modal-body{ padding: 1rem; }
+      .modal-footer{ padding: .75rem 1rem; }
+      .section-card{ padding: .85rem; }
+      .panel-white{ padding: 12px; }
+      .square-btn{ min-height: 82px; }
+      .navbar .pill{ display:none; } /* keep nav clean on small screens */
+    }
+
+    /* ====== TOAST HOST ====== */
     .toast-host{
       position: fixed;
       bottom: 14px;
@@ -226,20 +324,22 @@
       z-index: 2000;
       width: min(560px, calc(100% - 24px));
     }
+    .toast-host .alert{
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+    }
 
-    .table-lite td, .table-lite th{ padding: .55rem .6rem; vertical-align: middle; }
-
-    .modal-content{ border-radius: 18px; }
-
+    /* Inline code pill */
     .kbd{
       border: 1px solid rgba(255,255,255,.30);
       border-bottom-width: 2px;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 2px 7px;
-      font-weight: 900;
+      font-weight: 950;
       font-size: .85rem;
       color: var(--text);
       background: rgba(255,255,255,.08);
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -314,7 +414,7 @@
 
         <!-- Service picker required after login -->
         <div class="panel-white mt-3" id="servicePickerPanel" style="display:none;">
-          <h5 class="fw-black mb-2" style="font-weight:900;">
+          <h5 class="fw-black mb-2" style="font-weight:950;">
             Select Service <span class="text-danger">*</span>
             <span class="help-q ms-2" data-help="servicePicker">?</span>
           </h5>
@@ -322,7 +422,7 @@
             <div class="col-12 col-md-6">
               <select id="serviceSelect" class="form-select form-select-lg"></select>
               <div class="small-note mt-2">
-                Service controls which locations exist (e.g., Lisbon has Units 42/43; MC1 has MC1 kits).
+                Service controls which locations exist (Lisbon has Units 42/43; MC1 has MC1 kits).
               </div>
             </div>
             <div class="col-12 col-md-6">
@@ -334,7 +434,7 @@
 
         <!-- Role picker (optional in prototype) -->
         <div class="panel-white mt-3" id="rolePickerPanel" style="display:none;">
-          <h5 class="fw-black mb-2" style="font-weight:900;">
+          <h5 class="fw-black mb-2" style="font-weight:950;">
             Confirm Role (Prototype)
             <span class="help-q ms-2" data-help="roles">?</span>
           </h5>
@@ -349,7 +449,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -422,8 +521,9 @@
         <div class="grid" id="grid-reports"></div>
 
         <div class="panel-white mt-3">
-          <h5 class="fw-black" style="font-weight:900;">Recent Activity (Local Log)</h5>
+          <h5 class="mb-1" style="font-weight:950;">Recent Activity (Local Log)</h5>
           <div class="small-note">Stored in browser storage for this demo.</div>
+
           <div class="table-responsive mt-2">
             <table class="table table-sm table-lite">
               <thead>
@@ -440,11 +540,13 @@
               <tbody id="logTableBody"></tbody>
             </table>
           </div>
-          <div class="d-flex gap-2 flex-wrap">
+
+          <div class="d-flex gap-2 flex-wrap mt-2">
             <button class="btn btn-outline-secondary" type="button" id="btnClearLogs">Clear Logs</button>
             <button class="btn btn-outline-secondary" type="button" id="btnExportLogsJson">Export Logs (JSON)</button>
           </div>
-          <pre class="mt-3 p-2 rounded" style="background:#f6f7f8; border:1px solid #e5e7ea; display:none;" id="logExportBox"></pre>
+
+          <pre class="mt-3 p-2 rounded" style="background:#f6f7f8; border:1px solid #e5e7ea; display:none; overflow:auto; max-height: 45vh;" id="logExportBox"></pre>
         </div>
       </div>
     </div>
@@ -468,7 +570,7 @@
       </div>
     </div>
 
-    <!-- SERVICE ADMIN (per service) -->
+    <!-- SERVICE ADMIN -->
     <div class="view" id="view-admin">
       <div class="section-card">
         <div class="section-header">
@@ -484,9 +586,9 @@
         <div class="panel-white">
           <div class="row g-3">
             <div class="col-12 col-lg-6">
-              <h5 style="font-weight:900;">Med Master List (JSON)</h5>
-              <div class="small-note">Edit JSON array. Each item supports: name, defaultDose, isNarcotic, notes.</div>
-              <textarea class="form-control" id="adminMedsJson" rows="14" spellcheck="false"></textarea>
+              <h5 class="mb-1" style="font-weight:950;">Med Master List (JSON)</h5>
+              <div class="small-note">Edit JSON array. Supports: name, defaultDose, isNarcotic, notes.</div>
+              <textarea class="form-control" id="adminMedsJson" rows="14" spellcheck="false" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
               <div class="d-flex gap-2 mt-2 flex-wrap">
                 <button class="btn btn-dark" type="button" id="btnSaveMedsJson">Save</button>
                 <button class="btn btn-outline-secondary" type="button" id="btnResetMedsJson">Reset Default</button>
@@ -494,9 +596,9 @@
             </div>
 
             <div class="col-12 col-lg-6">
-              <h5 style="font-weight:900;">Supply Master List (JSON)</h5>
-              <div class="small-note">Edit JSON array. Each item supports: name, par, notes.</div>
-              <textarea class="form-control" id="adminSuppliesJson" rows="14" spellcheck="false"></textarea>
+              <h5 class="mb-1" style="font-weight:950;">Supply Master List (JSON)</h5>
+              <div class="small-note">Edit JSON array. Supports: name, par, notes.</div>
+              <textarea class="form-control" id="adminSuppliesJson" rows="14" spellcheck="false" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
               <div class="d-flex gap-2 mt-2 flex-wrap">
                 <button class="btn btn-dark" type="button" id="btnSaveSuppliesJson">Save</button>
                 <button class="btn btn-outline-secondary" type="button" id="btnResetSuppliesJson">Reset Default</button>
@@ -505,26 +607,20 @@
 
             <div class="col-12">
               <hr/>
-              <h5 style="font-weight:900;">Service Locations (JSON)</h5>
+              <h5 class="mb-1" style="font-weight:950;">Service Locations (JSON)</h5>
               <div class="small-note">Edit the current service’s location list. (Prototype stores in localStorage.)</div>
-              <textarea class="form-control" id="adminServiceLocationsJson" rows="12" spellcheck="false"></textarea>
+              <textarea class="form-control" id="adminServiceLocationsJson" rows="12" spellcheck="false" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
               <div class="d-flex gap-2 mt-2 flex-wrap">
                 <button class="btn btn-dark" type="button" id="btnSaveServiceLocationsJson">Save Locations</button>
                 <button class="btn btn-outline-secondary" type="button" id="btnResetServiceLocationsJson">Reset Default</button>
               </div>
-            </div>
-
-            <div class="col-12">
-              <hr/>
-              <h5 style="font-weight:900;">Service Users (Demo)</h5>
-              <div class="small-note">This prototype uses fixed demo users. In a real app, you’d manage user accounts here.</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- SYSTEM ADMIN (global: new app variants, settings JSON, versioning concepts) -->
+    <!-- SYSTEM ADMIN -->
     <div class="view" id="view-sysadmin">
       <div class="section-card">
         <div class="section-header">
@@ -545,21 +641,21 @@
             <span class="small-note">Edits are stored locally only.</span>
           </div>
           <hr/>
-          <textarea class="form-control" id="sysConfigJson" rows="22" spellcheck="false"></textarea>
+          <textarea class="form-control" id="sysConfigJson" rows="22" spellcheck="false" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;"></textarea>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- HELP MODAL (question marks + docs page uses this too) -->
+  <!-- HELP MODAL -->
   <div class="modal fade" id="helpModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <div>
-            <h5 class="modal-title" id="helpTitle" style="font-weight:900;">Help</h5>
-            <div class="small-note" id="helpSubtitle">—</div>
+            <h5 class="modal-title" id="helpTitle" style="font-weight:950;">Help</h5>
+            <div class="small-note" id="helpSubtitle" style="color: rgba(255,255,255,.75) !important;">—</div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -576,9 +672,9 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <div>
-            <h5 class="modal-title" id="checklistTitle" style="font-weight:900;">Checklist</h5>
-            <div class="small-note" id="checklistSubtitle">—</div>
+          <div class="me-3">
+            <h5 class="modal-title" id="checklistTitle" style="font-weight:950;">Checklist</h5>
+            <div class="small-note" id="checklistSubtitle" style="color: rgba(255,255,255,.75) !important;">—</div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -589,7 +685,7 @@
             <button class="btn btn-outline-secondary" type="button" id="btnStopScan" disabled>Stop Scan</button>
             <button class="btn btn-outline-secondary" type="button" id="btnAddManual">Add Manually</button>
             <button class="btn btn-outline-secondary" type="button" id="btnAddNarcManual">Add Narcotic (Paramedic)</button>
-            <span class="ms-auto small-note">QR format: <b>MED:Ondansetron</b>, <b>NARC:Fentanyl</b>, <b>SUP:4x4 Gauze</b></span>
+            <span class="ms-auto small-note">QR: <b>MED:</b> / <b>NARC:</b> / <b>SUP:</b></span>
           </div>
 
           <div id="qrRegionWrap" style="display:none;">
@@ -600,10 +696,11 @@
           </div>
 
           <div class="mt-3">
-            <h6 style="font-weight:900;">Checklist Items</h6>
+            <h6 style="font-weight:950;">Checklist Items</h6>
             <div class="small-note mb-2">
-              Items can be marked <b>Done</b>. Narcotics are flagged and controlled by role permissions.
+              Mark an item <b>Done</b> to select it for actions (prototype rule).
             </div>
+
             <div class="table-responsive">
               <table class="table table-sm table-lite">
                 <thead>
@@ -611,7 +708,7 @@
                     <th style="width:90px;">Done</th>
                     <th>Item</th>
                     <th style="width:140px;">Type</th>
-                    <th style="width:170px;">Dose/Qty</th>
+                    <th style="width:190px;">Dose/Qty</th>
                     <th>Notes</th>
                     <th style="width:80px;"></th>
                   </tr>
@@ -622,15 +719,15 @@
           </div>
 
           <div class="panel-white mt-3">
-            <h6 style="font-weight:900;">Role-Based Actions (This Checklist)</h6>
+            <h6 style="font-weight:950;">Role-Based Actions</h6>
             <div class="row g-2">
               <div class="col-12 col-lg-4">
                 <button class="btn btn-dark w-100" type="button" id="btnCheckout">Check Out Selected</button>
-                <div class="small-note mt-1">EMT/AEMT: non-narc meds; Paramedic: includes narcotics (if mode=MedChecks).</div>
+                <div class="small-note mt-1">EMT/AEMT: non-narc meds; Paramedic: includes narcotics (MedChecks).</div>
               </div>
               <div class="col-12 col-lg-4">
                 <button class="btn btn-outline-danger w-100" type="button" id="btnWaste">Waste Selected</button>
-                <div class="small-note mt-1">If any narcotics, requires a witness Paramedic (2nd medic).</div>
+                <div class="small-note mt-1">Narcotics require witness Paramedic.</div>
               </div>
               <div class="col-12 col-lg-4">
                 <button class="btn btn-outline-secondary w-100" type="button" id="btnMarkDiscrepancy">Report Discrepancy</button>
@@ -657,9 +754,9 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <div>
-            <h5 class="modal-title" style="font-weight:900;">Create Incident</h5>
-            <div class="small-note">Select items used and export a PDF to attach to your run report later.</div>
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Create Incident</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Select items used + export a PDF for your run report later.</div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -687,7 +784,7 @@
             <button class="btn btn-outline-secondary" type="button" id="btnIncidentAddNarc">Add Narcotic (Paramedic)</button>
             <button class="btn btn-outline-secondary" type="button" id="btnIncidentScan">Scan QR</button>
             <button class="btn btn-outline-secondary" type="button" id="btnIncidentStop" disabled>Stop Scan</button>
-            <span class="ms-auto small-note">QR: <b>MED:</b>, <b>NARC:</b>, <b>SUP:</b></span>
+            <span class="ms-auto small-note">QR: <b>MED:</b> / <b>NARC:</b> / <b>SUP:</b></span>
           </div>
 
           <div id="qrIncidentWrap" style="display:none;" class="mt-2">
@@ -698,7 +795,8 @@
           </div>
 
           <div class="mt-3">
-            <h6 style="font-weight:900;">Items Used</h6>
+            <h6 style="font-weight:950;">Items Used</h6>
+
             <div class="table-responsive">
               <table class="table table-sm table-lite">
                 <thead>
@@ -716,7 +814,7 @@
           </div>
 
           <div class="panel-white mt-3">
-            <h6 style="font-weight:900;">Incident Actions</h6>
+            <h6 style="font-weight:950;">Incident Actions</h6>
             <div class="row g-2">
               <div class="col-12 col-lg-4">
                 <button class="btn btn-dark w-100" type="button" id="btnIncidentCheckout">Check Out Items</button>
@@ -728,7 +826,7 @@
               </div>
               <div class="col-12 col-lg-4">
                 <button class="btn btn-outline-secondary w-100" type="button" id="btnIncidentExportPdf">Export PDF</button>
-                <div class="small-note mt-1">Client-side jsPDF export.</div>
+                <div class="small-note mt-1">Client-side export.</div>
               </div>
             </div>
           </div>
@@ -747,9 +845,9 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <div>
-            <h5 class="modal-title" id="pickerTitle" style="font-weight:900;">Pick an Item</h5>
-            <div class="small-note" id="pickerSubtitle">—</div>
+          <div class="me-3">
+            <h5 class="modal-title" id="pickerTitle" style="font-weight:950;">Pick an Item</h5>
+            <div class="small-note" id="pickerSubtitle" style="color: rgba(255,255,255,.75) !important;">—</div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
@@ -776,35 +874,35 @@
     </div>
   </div>
 
-  <!-- WITNESS MODAL (for narcotic waste) -->
+  <!-- WITNESS MODAL -->
   <div class="modal fade" id="witnessModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <div>
-            <h5 class="modal-title" style="font-weight:900;">Witness Required</h5>
-            <div class="small-note">Narcotic waste requires a second Paramedic witness (prototype).</div>
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Witness Required</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Narcotic waste requires a second Paramedic witness (prototype).</div>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="alert alert-warning">
-            You selected narcotic items for <b>waste</b>. Please enter witness credentials (must be Paramedic).
+            You selected narcotic items for <b>waste</b>. Enter witness credentials (must be Paramedic).
           </div>
 
           <div class="row g-2">
             <div class="col-12">
               <label class="form-label fw-bold">Witness Username</label>
-              <input class="form-control" id="witnessUser" placeholder="e.g., medic" value="medic">
+              <input class="form-control" id="witnessUser" value="medic">
             </div>
             <div class="col-12">
               <label class="form-label fw-bold">Witness Password</label>
-              <input class="form-control" id="witnessPass" placeholder="e.g., medic" value="medic">
+              <input class="form-control" id="witnessPass" value="medic">
             </div>
           </div>
 
           <div class="small-note mt-2">
-            Demo users: <b>medic/medic</b> (Paramedic), <b>admin/admin</b> (System Admin).
+            Demo witness: <b>medic/medic</b> (Paramedic) or <b>admin/admin</b> (System Admin).
           </div>
         </div>
         <div class="modal-footer">
@@ -820,7 +918,7 @@
 
   <script>
     /******************************************************************
-     * CONFIG: Everything is JSON-driven
+     * CONFIG + STORAGE
      ******************************************************************/
     const STORAGE_KEYS = {
       config: "mc_config_v1",
@@ -829,85 +927,53 @@
       checks: "mc_checks_v1"
     };
 
-    // Default configuration (System Admin can edit entire thing)
     const DEFAULT_CONFIG = {
-      meta: {
-        configVersion: "1.0.0",
-        appSuiteName: "MedChecks Suite",
-        lastUpdated: new Date().toISOString()
-      },
-
-      // App variants: You can add a new one later (System Admin)
+      meta: { configVersion:"1.0.0", appSuiteName:"MedChecks Suite", lastUpdated: new Date().toISOString() },
       apps: [
-        {
-          id: "medchecks",
-          name: "MedChecks",
-          modeKey: "MedChecks",
-          theme: { bodyClass: "mode-med", accent: "seafoam" }
-        },
-        {
-          id: "supplychecks",
-          name: "SupplyChecks",
-          modeKey: "SupplyChecks",
-          theme: { bodyClass: "mode-supply", accent: "red" }
-        }
+        { id:"medchecks", name:"MedChecks", modeKey:"MedChecks", theme:{ bodyClass:"mode-med", accent:"seafoam" } },
+        { id:"supplychecks", name:"SupplyChecks", modeKey:"SupplyChecks", theme:{ bodyClass:"mode-supply", accent:"red" } }
       ],
-
-      // Role model + permissions
       roles: [
-        { id: "EMT", label: "EMT", canCheckoutMeds: true, canCheckoutNarcotics: false, canWasteNarcotics: false, canAdminService: false, canAdminSystem: false },
-        { id: "AEMT", label: "AEMT", canCheckoutMeds: true, canCheckoutNarcotics: false, canWasteNarcotics: false, canAdminService: false, canAdminSystem: false },
-        { id: "Paramedic", label: "Paramedic", canCheckoutMeds: true, canCheckoutNarcotics: true, canWasteNarcotics: true, canAdminService: false, canAdminSystem: false },
-        { id: "ServiceAdmin", label: "Service Admin", canCheckoutMeds: true, canCheckoutNarcotics: true, canWasteNarcotics: true, canAdminService: true, canAdminSystem: false },
-        { id: "SystemAdmin", label: "System Admin", canCheckoutMeds: true, canCheckoutNarcotics: true, canWasteNarcotics: true, canAdminService: true, canAdminSystem: true }
+        { id:"EMT", label:"EMT", canCheckoutMeds:true, canCheckoutNarcotics:false, canWasteNarcotics:false, canAdminService:false, canAdminSystem:false },
+        { id:"AEMT", label:"AEMT", canCheckoutMeds:true, canCheckoutNarcotics:false, canWasteNarcotics:false, canAdminService:false, canAdminSystem:false },
+        { id:"Paramedic", label:"Paramedic", canCheckoutMeds:true, canCheckoutNarcotics:true, canWasteNarcotics:true, canAdminService:false, canAdminSystem:false },
+        { id:"ServiceAdmin", label:"Service Admin", canCheckoutMeds:true, canCheckoutNarcotics:true, canWasteNarcotics:true, canAdminService:true, canAdminSystem:false },
+        { id:"SystemAdmin", label:"System Admin", canCheckoutMeds:true, canCheckoutNarcotics:true, canWasteNarcotics:true, canAdminService:true, canAdminSystem:true }
       ],
-
-      // Demo users (prototype)
       users: [
-        { username: "user", password: "user", display: "Demo EMT", roleId: "EMT" },
-        { username: "aemt", password: "aemt", display: "Demo AEMT", roleId: "AEMT" },
-        { username: "medic", password: "medic", display: "Demo Paramedic", roleId: "Paramedic" },
-        { username: "svc", password: "svc", display: "Demo Service Admin", roleId: "ServiceAdmin" },
-        { username: "admin", password: "admin", display: "Demo System Admin", roleId: "SystemAdmin" }
+        { username:"user",  password:"user",  display:"Demo EMT", roleId:"EMT" },
+        { username:"aemt",  password:"aemt",  display:"Demo AEMT", roleId:"AEMT" },
+        { username:"medic", password:"medic", display:"Demo Paramedic", roleId:"Paramedic" },
+        { username:"svc",   password:"svc",   display:"Demo Service Admin", roleId:"ServiceAdmin" },
+        { username:"admin", password:"admin", display:"Demo System Admin", roleId:"SystemAdmin" }
       ],
-
-      // Services (companies). Lisbon has Units 42/43; MC1 does NOT.
       services: [
         {
-          id: "MC1",
-          label: "MC1",
-          locations: [
-            // MED locations (MC1)
+          id:"MC1", label:"MC1",
+          locations:[
             { id:"mc1-medbox", label:"MC1 Medication Box", category:"med" },
-            { id:"mc1-narc", label:"MC1 Narcotics", category:"med" },
-
-            // SUPPLY locations (MC1)
-            { id:"sr-mc1", label:"Supply Room (MC1)", category:"sup" },
-            { id:"mc1-jump", label:"MC1 Jump Kit", category:"sup" }
+            { id:"mc1-narc",   label:"MC1 Narcotics", category:"med" },
+            { id:"sr-mc1",     label:"Supply Room (MC1)", category:"sup" },
+            { id:"mc1-jump",   label:"MC1 Jump Kit", category:"sup" }
           ],
-          scheduledChecks: [
-            // "Daily check out of box meds daily" -> MC1 doesn't have Unit42/43; use medication box daily
+          scheduledChecks:[
             { idTemplate:"chk-mc1-medbox-{daily}", label:"Daily: MC1 Medication Box", cadence:"daily", locationId:"mc1-medbox", category:"med" },
-            { idTemplate:"chk-mc1-jump-{daily}", label:"Daily: MC1 Jump Kit", cadence:"daily", locationId:"mc1-jump", category:"sup" },
-            { idTemplate:"chk-sr-mc1-{monthly}", label:"Monthly: Supply Room (MC1)", cadence:"monthly", locationId:"sr-mc1", category:"sup" }
+            { idTemplate:"chk-mc1-jump-{daily}",   label:"Daily: MC1 Jump Kit", cadence:"daily", locationId:"mc1-jump", category:"sup" },
+            { idTemplate:"chk-sr-mc1-{monthly}",   label:"Monthly: Supply Room (MC1)", cadence:"monthly", locationId:"sr-mc1", category:"sup" }
           ]
         },
         {
-          id: "Lisbon",
-          label: "Lisbon",
-          locations: [
-            // Lisbon-specific Units
+          id:"Lisbon", label:"Lisbon",
+          locations:[
             { id:"u42-obo",  label:"Unit 42 Out of Box (Meds)", category:"med" },
             { id:"u42-narc", label:"Unit 42 Narcotic Box", category:"med" },
             { id:"u43-obo",  label:"Unit 43 Out of Box (Meds)", category:"med" },
             { id:"u43-narc", label:"Unit 43 Narcotic Box", category:"med" },
-
-            // Lisbon supplies
             { id:"sr-lisbon", label:"Supply Room (Lisbon)", category:"sup" },
-            { id:"u42-jump", label:"Unit 42 Jump Kit", category:"sup" },
-            { id:"u42-cab",  label:"Unit 42 Cabinet", category:"sup" }
+            { id:"u42-jump",  label:"Unit 42 Jump Kit", category:"sup" },
+            { id:"u42-cab",   label:"Unit 42 Cabinet", category:"sup" }
           ],
-          scheduledChecks: [
+          scheduledChecks:[
             { idTemplate:"chk-u42-obo-{daily}", label:"Daily: Unit 42 Out of Box", cadence:"daily", locationId:"u42-obo", category:"med" },
             { idTemplate:"chk-u43-obo-{daily}", label:"Daily: Unit 43 Out of Box", cadence:"daily", locationId:"u43-obo", category:"med" },
             { idTemplate:"chk-u42-jump-{daily}", label:"Daily: Unit 42 Jump Kit", cadence:"daily", locationId:"u42-jump", category:"sup" },
@@ -916,33 +982,28 @@
           ]
         }
       ],
-
-      // Master lists
-      master: {
-        meds: [
+      master:{
+        meds:[
           { name:"Aspirin", defaultDose:"324 mg PO", isNarcotic:false, notes:"chewable" },
           { name:"Nitroglycerin", defaultDose:"0.4 mg SL", isNarcotic:false, notes:"per protocol/contraindications" },
-          { name:"Ondansetron", defaultDose:"4 mg IV/ODT", isNarcotic:false, notes:"nausea/vomiting" },
+          { name:"Ondansetron", defaultDose:"4 mg IV/ODT", isNarcotic:false, notes:"n/v" },
           { name:"Dextrose (D10)", defaultDose:"100–250 mL IV", isNarcotic:false, notes:"hypoglycemia" },
           { name:"Glucagon", defaultDose:"1 mg IM", isNarcotic:false, notes:"no IV access" },
-          { name:"Epinephrine 1:10,000", defaultDose:"1 mg IV/IO", isNarcotic:false, notes:"cardiac arrest" },
+          { name:"Epinephrine 1:10,000", defaultDose:"1 mg IV/IO", isNarcotic:false, notes:"arrest" },
           { name:"Epinephrine 1:1,000", defaultDose:"0.3 mg IM", isNarcotic:false, notes:"anaphylaxis" },
-          { name:"Albuterol", defaultDose:"2.5 mg neb", isNarcotic:false, notes:"wheeze/bronchospasm" },
-          { name:"Ipratropium", defaultDose:"0.5 mg neb", isNarcotic:false, notes:"with albuterol" },
-          { name:"Naloxone", defaultDose:"0.4–2 mg IN/IV", isNarcotic:false, notes:"opioid overdose" },
-
-          { name:"Fentanyl", defaultDose:"25–100 mcg IV/IN", isNarcotic:true, notes:"pain (protocol)" },
-          { name:"Morphine", defaultDose:"2–10 mg IV", isNarcotic:true, notes:"pain (protocol)" }
+          { name:"Albuterol", defaultDose:"2.5 mg neb", isNarcotic:false, notes:"bronchospasm" },
+          { name:"Naloxone", defaultDose:"0.4–2 mg IN/IV", isNarcotic:false, notes:"overdose" },
+          { name:"Fentanyl", defaultDose:"25–100 mcg IV/IN", isNarcotic:true, notes:"pain" },
+          { name:"Morphine", defaultDose:"2–10 mg IV", isNarcotic:true, notes:"pain" }
         ],
-        supplies: [
+        supplies:[
           { name:"O2 Nasal Cannula", par:"10", notes:"adult" },
           { name:"O2 Non-Rebreather Mask", par:"6", notes:"adult" },
           { name:"BVM Adult", par:"2", notes:"add PEEP if available" },
           { name:"OPA assorted", par:"1 set", notes:"sizes" },
           { name:"NPA assorted", par:"1 set", notes:"with lube" },
-          { name:"SGA (i-gel) assorted", par:"1 set", notes:"sizes" },
           { name:"Suction Yankauer", par:"4", notes:"disposable" },
-          { name:"IV Start Kit", par:"10", notes:"tourniquet, CHG, tape" },
+          { name:"IV Start Kit", par:"10", notes:"tourniquet/CHG/tape" },
           { name:"18ga IV Catheter", par:"10", notes:"" },
           { name:"20ga IV Catheter", par:"10", notes:"" },
           { name:"Saline Flush (10mL)", par:"20", notes:"" },
@@ -954,158 +1015,58 @@
           { name:"BP Cuff Adult", par:"1", notes:"" }
         ]
       },
-
-      // "I want to..." scenarios (9) - JSON driven
-      scenarios: [
+      scenarios:[
         { id:"createIncident", label:"Create an incident", tag:"PDF", meta:"Select items used + export PDF", requiresLogin:true },
         { id:"scanItem", label:"Scan an item", tag:"QR", meta:"Scan to add to checklist/incident", requiresLogin:true },
         { id:"checkoutMeds", label:"Check out meds", tag:"Med", meta:"Role-based checkout (narcotics only for Paramedic+)", requiresLogin:true },
         { id:"wasteMeds", label:"Waste meds", tag:"Med", meta:"Narcotics require witness Paramedic", requiresLogin:true },
-        { id:"runTodaysCheck", label:"Run today's check", tag:"Checklist", meta:"Launch the first scheduled check due today", requiresLogin:true },
+        { id:"runTodaysCheck", label:"Run today's check", tag:"Checklist", meta:"Launch a scheduled check due today", requiresLogin:true },
         { id:"stockSupplies", label:"Stock supplies", tag:"Supply", meta:"Prototype stock action (log entry)", requiresLogin:true },
         { id:"transferItems", label:"Transfer items", tag:"Inventory", meta:"Prototype transfer action (log entry)", requiresLogin:true },
         { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Missing/damaged/expired", requiresLogin:true },
         { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Search local logs by keyword", requiresLogin:true }
       ],
-
-      // Reports buttons
-      reports: [
+      reports:[
         { id:"history", label:"History", tag:"Log", meta:"View recent actions" },
         { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Filter by keywords" },
         { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Create a discrepancy record" }
       ],
-
-      // Documentation: full set, used by ? and docs page
-      docs: {
-        login: {
-          title: "Login (Prototype)",
-          subtitle: "Demo accounts and role assignment",
-          html: `
-            <p>This is a <b>concept prototype</b> (no security). Login uses fixed demo users:</p>
-            <ul>
-              <li><b>user/user</b> → EMT</li>
-              <li><b>aemt/aemt</b> → AEMT</li>
-              <li><b>medic/medic</b> → Paramedic</li>
-              <li><b>svc/svc</b> → Service Admin</li>
-              <li><b>admin/admin</b> → System Admin</li>
-            </ul>
-            <p>After login, you must select a <b>Service</b> (MC1 vs Lisbon) before using the app.</p>
-          `
-        },
-        servicePicker: {
-          title: "Service Selection",
-          subtitle: "MC1 vs Lisbon changes locations",
-          html: `
-            <p>Services represent companies/agencies. This prototype includes:</p>
-            <ul>
-              <li><b>Lisbon</b>: Units 42/43 + Lisbon supply room</li>
-              <li><b>MC1</b>: MC1 supply room, MC1 jump kit, MC1 med box, MC1 narcotics</li>
-            </ul>
-            <p>Unit 42/43 are <b>Lisbon-only</b> and will not appear for MC1.</p>
-          `
-        },
-        roles: {
-          title: "Roles & Medication Controls",
-          subtitle: "Role-based permissions in this demo",
-          html: `
-            <ul>
-              <li><b>EMT / AEMT</b>: can check out non-narcotic meds</li>
-              <li><b>Paramedic</b>: can check out non-narcotic + narcotics</li>
-              <li><b>Narcotic Waste</b>: requires a <b>second Paramedic witness</b> (witness modal)</li>
-              <li><b>Service Admin</b>: manages tables/settings for their <b>service</b></li>
-              <li><b>System Admin</b>: controls <b>everything</b>, including creating new app variants/settings</li>
-            </ul>
-            <p>All enforcement is local/prototype-only, implemented in JavaScript.</p>
-          `
-        },
-        dashboard: {
-          title: "Dashboard",
-          subtitle: "Locations and scheduled checks",
-          html: `
-            <p>The dashboard shows:</p>
-            <ul>
-              <li><b>Locations</b> filtered by Service + Mode (MedChecks vs SupplyChecks)</li>
-              <li><b>Scheduled checks</b> (daily/monthly) that launch real checklists</li>
-            </ul>
-            <p>Tap a location to open a checklist. Use QR scanning to add items quickly.</p>
-          `
-        },
-        scheduledChecks: {
-          title: "Scheduled Checks",
-          subtitle: "Daily/Monthly checklists",
-          html: `
-            <p>Scheduled checks are generated from JSON:</p>
-            <ul>
-              <li>Daily checks (e.g., Lisbon Unit 42/43 out-of-box, MC1 med box)</li>
-              <li>Monthly supply room checks (service-specific)</li>
-            </ul>
-            <p>Saving a scheduled checklist marks it done for that period (stored in localStorage).</p>
-          `
-        },
-        iwant: {
-          title: "I want to…",
-          subtitle: "Scenario shortcuts",
-          html: `
-            <p>These are shortcut workflows (JSON-driven) such as:</p>
-            <ul>
-              <li>Create an incident (PDF export)</li>
-              <li>Check out meds (role-aware)</li>
-              <li>Waste meds (witness required for narcotics)</li>
-              <li>Scan items (QR)</li>
-            </ul>
-          `
-        },
-        reports: {
-          title: "Reports & Logs",
-          subtitle: "Local demo reporting",
-          html: `
-            <p>All actions write to a local activity log (browser storage).</p>
-            <ul>
-              <li>History view</li>
-              <li>Search logs by keyword</li>
-              <li>Discrepancy reports (log entries)</li>
-            </ul>
-          `
-        },
-        serviceAdmin: {
-          title: "Service Admin",
-          subtitle: "Manage service-specific tables/settings",
-          html: `
-            <p>Service Admin can:</p>
-            <ul>
-              <li>Edit <b>Master Meds</b> and <b>Master Supplies</b> lists (JSON)</li>
-              <li>Edit <b>Locations</b> for their service (JSON)</li>
-            </ul>
-            <p>Changes are stored locally in this prototype. In production, these would persist server-side.</p>
-          `
-        },
-        systemAdmin: {
-          title: "System Admin",
-          subtitle: "Global configuration + new app variants",
-          html: `
-            <p>System Admin can edit the entire JSON config:</p>
-            <ul>
-              <li>Add a new app variant (e.g., “VehicleChecks”)</li>
-              <li>Add services/locations/checks/scenarios</li>
-              <li>Edit documentation topics</li>
-              <li>Bump configVersion or change behaviors</li>
-            </ul>
-            <p>After saving, the UI re-renders from the JSON.</p>
-          `
-        },
-        qr: {
-          title: "QR Scanning",
-          subtitle: "Supported prefixes",
-          html: `
-            <p>Supported QR formats:</p>
-            <ul>
-              <li><b>MED:Ondansetron</b> → med item</li>
-              <li><b>NARC:Fentanyl</b> → narcotic med</li>
-              <li><b>SUP:4x4 Gauze</b> → supply item</li>
-            </ul>
-            <p>On iOS, camera permissions can be strict. Use “Add Manually” if needed.</p>
-          `
-        }
+      docs:{
+        login:{ title:"Login (Prototype)", subtitle:"Demo accounts and role assignment",
+          html:`<p>This is a <b>concept prototype</b> (no security). Demo users:</p>
+          <ul>
+            <li><b>user/user</b> → EMT</li>
+            <li><b>aemt/aemt</b> → AEMT</li>
+            <li><b>medic/medic</b> → Paramedic</li>
+            <li><b>svc/svc</b> → Service Admin</li>
+            <li><b>admin/admin</b> → System Admin</li>
+          </ul>
+          <p>After login, you must select a <b>Service</b> (MC1 vs Lisbon).</p>` },
+        servicePicker:{ title:"Service Selection", subtitle:"MC1 vs Lisbon changes locations",
+          html:`<ul>
+            <li><b>Lisbon</b>: Units 42/43 + Lisbon supply room</li>
+            <li><b>MC1</b>: MC1 supply room, MC1 jump kit, MC1 med box, MC1 narcotics</li>
+          </ul>` },
+        roles:{ title:"Roles & Medication Controls", subtitle:"Role-based permissions",
+          html:`<ul>
+            <li><b>EMT / AEMT</b>: can check out non-narcotic meds</li>
+            <li><b>Paramedic</b>: can check out narcotics</li>
+            <li><b>Narcotic waste</b>: requires <b>witness Paramedic</b></li>
+            <li><b>Service Admin</b>: manages service lists/settings</li>
+            <li><b>System Admin</b>: edits global JSON config + creates new app variants</li>
+          </ul>` },
+        dashboard:{ title:"Dashboard", subtitle:"Locations and checks",
+          html:`<p>Shows locations filtered by <b>Service</b> and <b>Mode</b> (MedChecks vs SupplyChecks).</p>` },
+        scheduledChecks:{ title:"Scheduled Checks", subtitle:"Daily/Monthly checklists",
+          html:`<p>Scheduled checks open real checklists. Saving marks the scheduled check done for the day/month.</p>` },
+        iwant:{ title:"I want to…", subtitle:"Scenario shortcuts",
+          html:`<p>Shortcut workflows like incident PDF export, QR scan, and discrepancy reporting.</p>` },
+        reports:{ title:"Reports & Logs", subtitle:"Local demo reporting",
+          html:`<p>All actions write to a local activity log (browser storage).</p>` },
+        serviceAdmin:{ title:"Service Admin", subtitle:"Manage service settings",
+          html:`<p>Edit master lists + service locations via JSON. Stored locally in this prototype.</p>` },
+        systemAdmin:{ title:"System Admin", subtitle:"Global configuration + new app variants",
+          html:`<p>Edit the entire JSON config and re-render the UI.</p>` }
       }
     };
 
@@ -1115,8 +1076,7 @@
     function loadConfig(){
       const raw = localStorage.getItem(STORAGE_KEYS.config);
       if (!raw) return structuredClone(DEFAULT_CONFIG);
-      try { return JSON.parse(raw); }
-      catch { return structuredClone(DEFAULT_CONFIG); }
+      try { return JSON.parse(raw); } catch { return structuredClone(DEFAULT_CONFIG); }
     }
     function saveConfig(cfg){
       cfg.meta.lastUpdated = new Date().toISOString();
@@ -1160,13 +1120,13 @@
     function toast(title, msg){
       const id = "t" + Math.random().toString(16).slice(2);
       const html = `
-        <div class="alert alert-light border" id="${id}" style="border-radius:16px;">
+        <div class="alert alert-light border" id="${id}">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
-              <div style="font-weight:900;">${escapeHtml(title)}</div>
+              <div style="font-weight:950;">${escapeHtml(title)}</div>
               <div class="text-muted">${escapeHtml(msg || "")}</div>
             </div>
-            <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('${id}').remove()">X</button>
+            <button class="btn btn-sm btn-outline-secondary" style="border-radius: 999px;" onclick="document.getElementById('${id}').remove()">X</button>
           </div>
         </div>
       `;
@@ -1205,40 +1165,21 @@
       return el;
     }
 
-    function getRole(cfg, roleId){
-      return cfg.roles.find(r => r.id === roleId) || null;
-    }
-    function isSystemAdmin(cfg, s){
-      const r = getRole(cfg, s?.roleId);
-      return !!r?.canAdminSystem;
-    }
-    function isServiceAdmin(cfg, s){
-      const r = getRole(cfg, s?.roleId);
-      return !!r?.canAdminService;
-    }
+    function getRole(cfg, roleId){ return cfg.roles.find(r => r.id === roleId) || null; }
+    function isSystemAdmin(cfg, s){ return !!getRole(cfg, s?.roleId)?.canAdminSystem; }
+    function isServiceAdmin(cfg, s){ return !!getRole(cfg, s?.roleId)?.canAdminService; }
 
     /******************************************************************
-     * SERVICE-SCOPED DATA OVERRIDES (edited by Service Admin)
+     * SERVICE OVERRIDES + MASTERS
      ******************************************************************/
     function getServiceOverrideKey(serviceId){ return `mc_service_${serviceId}_override_v1`; }
-
     function getService(cfg, serviceId){
       const base = cfg.services.find(x => x.id === serviceId);
       if (!base) return null;
-
-      // apply override if exists
       const raw = localStorage.getItem(getServiceOverrideKey(serviceId));
       if (!raw) return structuredClone(base);
-
-      try {
-        const ov = JSON.parse(raw);
-        // only override the service object shape
-        return { ...structuredClone(base), ...ov };
-      } catch {
-        return structuredClone(base);
-      }
+      try { return { ...structuredClone(base), ...JSON.parse(raw) }; } catch { return structuredClone(base); }
     }
-
     function saveServiceOverride(serviceId, partial){
       localStorage.setItem(getServiceOverrideKey(serviceId), JSON.stringify(partial, null, 2));
     }
@@ -1246,10 +1187,7 @@
       localStorage.removeItem(getServiceOverrideKey(serviceId));
     }
 
-    /******************************************************************
-     * MASTER LIST OVERRIDES (edited by Service Admin)
-     ******************************************************************/
-    function getMasterOverrideKey(kind){ return `mc_master_${kind}_override_v1`; } // kind: meds/supplies
+    function getMasterOverrideKey(kind){ return `mc_master_${kind}_override_v1`; }
     function getMaster(cfg, kind){
       const raw = localStorage.getItem(getMasterOverrideKey(kind));
       if (!raw) return structuredClone(cfg.master[kind]);
@@ -1267,13 +1205,11 @@
       sel.append(`<option value="">-- Choose Service --</option>`);
       cfg.services.forEach(s => sel.append(`<option value="${escapeAttr(s.id)}">${escapeHtml(s.label)}</option>`));
     }
-
     function buildRoleSelect(cfg){
       const sel = $("#roleSelect");
       sel.empty();
       cfg.roles.forEach(r => sel.append(`<option value="${escapeAttr(r.id)}">${escapeHtml(r.label)}</option>`));
     }
-
     function authenticate(cfg, username, password){
       return cfg.users.find(u => u.username === username && u.password === password) || null;
     }
@@ -1285,21 +1221,13 @@
       const user = authenticate(cfg, u, p);
 
       if (!user){
-        toast("Login failed", "Use a demo account: user/user, aemt/aemt, medic/medic, svc/svc, admin/admin");
+        toast("Login failed", "Use demo: user/user, aemt/aemt, medic/medic, svc/svc, admin/admin");
         return;
       }
 
-      // default to MedChecks, require service selection
-      const session = {
-        user: user.username,
-        display: user.display,
-        roleId: user.roleId,
-        service: "",
-        modeKey: "MedChecks"
-      };
+      const session = { user: user.username, display: user.display, roleId: user.roleId, service: "", modeKey: "MedChecks" };
       setSession(session);
 
-      // show service picker + role picker
       buildServiceSelect(cfg);
       buildRoleSelect(cfg);
       $("#roleSelect").val(session.roleId);
@@ -1309,8 +1237,8 @@
       $("#btnLogout").show();
 
       $("#whoPill").text(`${session.user} (${session.roleId}) • pick service`);
-      $("#adminNav").toggle(false);
-      $("#sysAdminNav").toggle(false);
+      $("#adminNav").hide();
+      $("#sysAdminNav").hide();
 
       applyModeTheme(session.modeKey);
       toast("Logged in", "Select service to continue.");
@@ -1321,7 +1249,6 @@
       const cfg = loadConfig();
       const s = getSession();
       if (!s) return;
-
       const roleId = ($("#roleSelect").val() || "").trim();
       if (!cfg.roles.some(r => r.id === roleId)){
         toast("Invalid role", "Role not found.");
@@ -1350,7 +1277,6 @@
       }
 
       s.service = serviceId;
-      // role might be overridden in demo
       s.roleId = ($("#roleSelect").val() || s.roleId).trim() || s.roleId;
       setSession(s);
 
@@ -1397,7 +1323,7 @@
     }
 
     /******************************************************************
-     * JSON-DRIVEN RENDERING (inventory, checks, scenarios, reports, docs)
+     * JSON-DRIVEN RENDERING
      ******************************************************************/
     function getLocationsForCurrent(cfg){
       const s = getSession();
@@ -1405,7 +1331,6 @@
       const svc = getService(cfg, s.service);
       if (!svc) return [];
       const category = (s.modeKey === "MedChecks") ? "med" : "sup";
-      // Only show locations matching mode category
       return (svc.locations || []).filter(l => l.category === category);
     }
 
@@ -1423,12 +1348,7 @@
 
       return (svc.scheduledChecks || [])
         .filter(c => c.category === category)
-        .map(c => {
-          const id = c.idTemplate
-            .replace("{daily}", daily)
-            .replace("{monthly}", monthly);
-          return { ...c, id };
-        });
+        .map(c => ({ ...c, id: c.idTemplate.replace("{daily}", daily).replace("{monthly}", monthly) }));
     }
 
     function renderInventory(cfg){
@@ -1445,7 +1365,7 @@
         <div style="grid-column: span 12;">
           <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-1">
             <div>
-              <h4 class="mb-0" style="font-weight:900;">Inventory / Manage</h4>
+              <h4 class="mb-0" style="font-weight:950;">Inventory / Manage</h4>
               <div class="section-sub">Showing: <b>${escapeHtml(categoryLabel)}</b> locations for <b>${escapeHtml(s.service)}</b>.</div>
             </div>
             <div class="d-flex gap-2 flex-wrap align-items-center">
@@ -1499,7 +1419,7 @@
           <div style="grid-column: span 12;">
             <div class="panel-white">
               <b>No scheduled checks</b>
-              <div class="small-note">System Admin can add checks in JSON; Service Admin can edit service checklists by editing service JSON (advanced).</div>
+              <div class="small-note">Add checks via JSON config (System Admin).</div>
             </div>
           </div>
         `);
@@ -1509,32 +1429,24 @@
     function renderScenarios(cfg){
       const wrap = $("#grid-iwant");
       wrap.empty();
-
-      cfg.scenarios.forEach(scn => {
-        wrap.append(squareButton(scn.label, scn.tag, scn.meta, () => handleScenario(cfg, scn.id)));
-      });
+      cfg.scenarios.forEach(scn => wrap.append(squareButton(scn.label, scn.tag, scn.meta, () => handleScenario(cfg, scn.id))));
     }
 
     function renderReportsButtons(cfg){
       const wrap = $("#grid-reports");
       wrap.empty();
-
-      cfg.reports.forEach(r => {
-        wrap.append(squareButton(r.label, r.tag, r.meta, () => handleReport(cfg, r.id)));
-      });
+      cfg.reports.forEach(r => wrap.append(squareButton(r.label, r.tag, r.meta, () => handleReport(cfg, r.id))));
     }
 
     function renderDocsList(cfg){
       const list = $("#docsList");
       list.empty();
       const topics = cfg.docs || {};
-      const keys = Object.keys(topics);
-
-      keys.forEach(key => {
+      Object.keys(topics).forEach(key => {
         const t = topics[key];
         const card = $(`
           <div class="col-12 col-md-6 col-lg-4">
-            <button class="btn btn-light w-100 text-start mb-2" type="button">
+            <button class="btn btn-light w-100 text-start mb-2" type="button" style="border-radius:18px;">
               <b>${escapeHtml(t.title || key)}</b>
               <div class="small text-muted">${escapeHtml(t.subtitle || "")}</div>
               <div class="small text-muted">Topic key: <code>${escapeHtml(key)}</code></div>
@@ -1560,7 +1472,7 @@
             <td>${escapeHtml(l.role)}</td>
             <td>${escapeHtml(l.mode)}</td>
             <td>${escapeHtml(l.action)}</td>
-            <td>${escapeHtml(l.details || "")}</td>
+            <td style="min-width: 220px;">${escapeHtml(l.details || "")}</td>
           </tr>
         `);
       });
@@ -1578,7 +1490,7 @@
     }
 
     /******************************************************************
-     * HELP MODALS
+     * HELP MODAL
      ******************************************************************/
     function openHelp(cfg, key){
       const topic = (cfg.docs || {})[key];
@@ -1595,9 +1507,9 @@
     }
 
     /******************************************************************
-     * CHECKLIST + INVENTORY ACTIONS (JSON + role enforcement)
+     * CHECKLIST + ACTIONS
      ******************************************************************/
-    let currentChecklist = null; // { kind, storageKey, title, subtitle, category, rows[], scheduledId? }
+    let currentChecklist = null;
     let qrScanner = null;
 
     function checklistStateKey(key){ return "mc_checklist_" + key; }
@@ -1610,16 +1522,12 @@
     }
 
     function seedRowsFromMaster(cfg, category){
-      const list = (category === "med")
-        ? getMaster(cfg, "meds")
-        : getMaster(cfg, "supplies");
-
-      // seed first 8
+      const list = (category === "med") ? getMaster(cfg, "meds") : getMaster(cfg, "supplies");
       return list.slice(0, 8).map(x => ({
-        done: false,
+        done:false,
         category,
         isNarcotic: !!x.isNarcotic,
-        item: x.name,
+        item:x.name,
         doseQty: (category === "med") ? (x.defaultDose || "") : (x.par || ""),
         notes: x.notes || ""
       }));
@@ -1630,17 +1538,15 @@
       const s = getSession();
       if (!s) return;
 
-      const category = loc.category; // "med" or "sup"
+      const category = loc.category;
       const title = loc.label;
       const subtitle = `${s.service} • ${s.modeKey} • ${category.toUpperCase()} checklist`;
 
       const saved = loadChecklistState(`loc:${loc.id}:${s.modeKey}`);
       currentChecklist = {
-        kind: "location",
-        storageKey: `loc:${loc.id}:${s.modeKey}`,
-        title,
-        subtitle,
-        category,
+        kind:"location",
+        storageKey:`loc:${loc.id}:${s.modeKey}`,
+        title, subtitle, category,
         rows: saved?.rows || seedRowsFromMaster(cfg, category)
       };
 
@@ -1654,17 +1560,16 @@
       if (!s) return;
 
       const title = chk.label;
-      const subtitle = `${s.service} • ${chk.cadence} • ${chk.category.toUpperCase()} • ${chk.locationId}`;
+      const subtitle = `${s.service} • ${chk.cadence} • ${chk.category.toUpperCase()}`;
 
       const storageKey = `chk:${chk.id}:${s.modeKey}`;
       const saved = loadChecklistState(storageKey);
 
       currentChecklist = {
-        kind: "scheduled",
+        kind:"scheduled",
         storageKey,
         scheduledId: chk.id,
-        title,
-        subtitle,
+        title, subtitle,
         category: chk.category,
         rows: saved?.rows || seedRowsFromMaster(cfg, chk.category)
       };
@@ -1676,14 +1581,13 @@
     function showChecklistModal(cfg){
       $("#checklistTitle").text(currentChecklist.title);
       $("#checklistSubtitle").text(currentChecklist.subtitle);
+
       $("#qrRegionWrap").hide();
       $("#btnStopScan").prop("disabled", true);
       stopQrIfRunning();
 
-      // Role-based enable/disable
       const s = getSession();
       const role = getRole(cfg, s.roleId);
-
       const medMode = (s.modeKey === "MedChecks");
       const canUseNarcUi = medMode && !!role?.canCheckoutNarcotics;
 
@@ -1711,7 +1615,7 @@
             <td>${typeBadge}</td>
             <td><input class="form-control form-control-sm" data-field="doseQty" data-idx="${idx}" value="${escapeAttr(r.doseQty || "")}" /></td>
             <td><input class="form-control form-control-sm" data-field="notes" data-idx="${idx}" value="${escapeAttr(r.notes || "")}" /></td>
-            <td><button class="btn btn-sm btn-outline-danger" data-del="${idx}">X</button></td>
+            <td><button class="btn btn-sm btn-outline-danger" style="border-radius: 999px;" data-del="${idx}">X</button></td>
           </tr>
         `);
       });
@@ -1749,7 +1653,6 @@
     }
 
     function getSelectedChecklistRows(){
-      // define "selected" as rows that are checked Done
       return currentChecklist.rows.filter(r => r.done);
     }
 
@@ -1757,22 +1660,14 @@
       const s = getSession();
       const role = getRole(cfg, s.roleId);
 
-      if (!items.length){
-        toast("Nothing selected", "Mark items as Done to select them (prototype rule).");
-        return { ok:false };
-      }
+      if (!items.length) return { ok:false, reason:"Mark items Done to select them (prototype)." };
 
-      // Supplies checkout is always allowed (in this prototype) because it's not medication control.
       const hasMed = items.some(x => x.category === "med");
       const hasNarc = items.some(x => x.category === "med" && x.isNarcotic);
 
       if (hasMed){
-        if (!role?.canCheckoutMeds){
-          return { ok:false, reason:"Your role cannot check out medications." };
-        }
-        if (hasNarc && !role?.canCheckoutNarcotics){
-          return { ok:false, reason:"Narcotics require Paramedic (or Admin)." };
-        }
+        if (!role?.canCheckoutMeds) return { ok:false, reason:"Your role cannot check out medications." };
+        if (hasNarc && !role?.canCheckoutNarcotics) return { ok:false, reason:"Narcotics require Paramedic (or Admin)." };
       }
       return { ok:true, hasNarc };
     }
@@ -1781,23 +1676,17 @@
       const s = getSession();
       const role = getRole(cfg, s.roleId);
 
-      if (!items.length){
-        toast("Nothing selected", "Mark items as Done to select them (prototype rule).");
-        return { ok:false };
-      }
+      if (!items.length) return { ok:false, reason:"Mark items Done to select them (prototype)." };
 
       const hasNarc = items.some(x => x.category === "med" && x.isNarcotic);
-      if (hasNarc && !role?.canWasteNarcotics){
-        return { ok:false, reason:"Narcotic waste requires Paramedic (or Admin)." };
-      }
+      if (hasNarc && !role?.canWasteNarcotics) return { ok:false, reason:"Narcotic waste requires Paramedic (or Admin)." };
+
       return { ok:true, hasNarc };
     }
 
-    // Witness flow
     let witnessResolve = null;
     async function requireWitnessIfNeeded(cfg, needsWitness){
       if (!needsWitness) return { ok:true };
-
       return new Promise((resolve) => {
         witnessResolve = resolve;
         new bootstrap.Modal(document.getElementById("witnessModal")).show();
@@ -1808,10 +1697,7 @@
       const u = ($("#witnessUser").val() || "").trim();
       const p = ($("#witnessPass").val() || "").trim();
       const user = authenticate(cfg, u, p);
-      if (!user){
-        toast("Witness invalid", "Credentials not recognized.");
-        return;
-      }
+      if (!user){ toast("Witness invalid", "Credentials not recognized."); return; }
       const role = getRole(cfg, user.roleId);
       if (user.roleId !== "Paramedic" && !role?.canAdminSystem){
         toast("Witness invalid", "Witness must be Paramedic (or System Admin in this demo).");
@@ -1819,22 +1705,16 @@
       }
 
       bootstrap.Modal.getInstance(document.getElementById("witnessModal")).hide();
-      const res = witnessResolve;
-      witnessResolve = null;
-      res?.({ ok:true, witnessUser: user.username, witnessRole: user.roleId });
+      const res = witnessResolve; witnessResolve = null;
+      res?.({ ok:true, witnessUser:user.username, witnessRole:user.roleId });
       toast("Witness accepted", `${user.username} (${user.roleId})`);
     }
 
     function checkoutFromChecklist(){
       const cfg = loadConfig();
       const items = getSelectedChecklistRows();
-
       const check = enforceCheckoutRules(cfg, items);
-      if (!check.ok){
-        toast("Not allowed", check.reason || "Permission denied.");
-        addLog("Checkout Denied", check.reason || "Denied");
-        return;
-      }
+      if (!check.ok){ toast("Not allowed", check.reason); addLog("Checkout Denied", check.reason); return; }
 
       const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
       addLog("Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``} • ${currentChecklist.title}`);
@@ -1844,21 +1724,11 @@
     async function wasteFromChecklist(){
       const cfg = loadConfig();
       const items = getSelectedChecklistRows();
-
       const check = enforceWasteRules(cfg, items);
-      if (!check.ok){
-        toast("Not allowed", check.reason || "Permission denied.");
-        addLog("Waste Denied", check.reason || "Denied");
-        return;
-      }
+      if (!check.ok){ toast("Not allowed", check.reason); addLog("Waste Denied", check.reason); return; }
 
-      // if narcotics exist, witness required
       const witness = await requireWitnessIfNeeded(cfg, check.hasNarc);
-      if (!witness.ok){
-        toast("Cancelled", "Witness not provided.");
-        addLog("Waste Cancelled", "No witness");
-        return;
-      }
+      if (!witness.ok){ toast("Cancelled", "Witness not provided."); addLog("Waste Cancelled", "No witness"); return; }
 
       const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
       addLog("Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``} • ${currentChecklist.title}`);
@@ -1874,7 +1744,7 @@
     }
 
     /******************************************************************
-     * QR SCANNING
+     * QR SCANNING (Html5Qrcode safe)
      ******************************************************************/
     function startQrScanner(targetDivId, onText){
       if (typeof Html5Qrcode === "undefined") {
@@ -1898,9 +1768,7 @@
 
     function stopQrIfRunning(){
       if (qrScanner){
-        try{
-          qrScanner.stop().then(() => qrScanner.clear()).catch(()=>{});
-        }catch(_){}
+        try{ qrScanner.stop().then(() => qrScanner.clear()).catch(()=>{}); } catch(_){}
         qrScanner = null;
       }
     }
@@ -1917,34 +1785,24 @@
       if (upper.startsWith("SUP:")) { category = "sup"; name = txt.slice(4).trim(); }
       if (upper.startsWith("NARC:")) { category = "med"; isNarcotic = true; name = txt.slice(5).trim(); }
 
-      // If unknown prefix, infer from current mode
       const s = getSession();
       if (!category){
         category = (s?.modeKey === "SupplyChecks") ? "sup" : "med";
       }
 
-      // If MED but matches a narcotic in master list, set flag
       if (category === "med" && !isNarcotic){
         const meds = getMaster(cfg, "meds");
-        const found = meds.find(m => m.name.toLowerCase() === name.toLowerCase());
+        const found = meds.find(m => (m.name||"").toLowerCase() === (name||"").toLowerCase());
         if (found?.isNarcotic) isNarcotic = true;
       }
 
-      return {
-        category,
-        isNarcotic,
-        item: name || txt,
-        doseQty: "",
-        notes: isNarcotic ? "Scanned (NARC)" : (category==="med" ? "Scanned (MED)" : "Scanned (SUP)"),
-        done: true
-      };
+      return { category, isNarcotic, item: name || txt, doseQty:"", notes:"Scanned", done:true };
     }
 
     function addScannedToChecklist(decodedText){
       const cfg = loadConfig();
       const row = parseQrTextToItem(cfg, decodedText);
 
-      // if narcotic but user cannot add narcotics, block (prototype)
       const s = getSession();
       const role = getRole(cfg, s.roleId);
       if (row.category === "med" && row.isNarcotic && !role?.canCheckoutNarcotics){
@@ -1953,7 +1811,6 @@
         return;
       }
 
-      // If current checklist category differs, still allow but keep category (for demo)
       currentChecklist.rows.unshift(row);
       renderChecklistRows(cfg);
       addLog("Scan QR", decodedText);
@@ -1961,27 +1818,21 @@
     }
 
     /******************************************************************
-     * PICKER (manual add) - JSON-driven + role-aware
+     * PICKER (manual add)
      ******************************************************************/
     let pickerCallback = null;
-    let pickerOptions = { allowNarc: false, forceType: null };
+    let pickerOptions = { forceType:null };
 
     function openPicker(cfg, title, subtitle, options, callback){
       pickerCallback = callback;
-      pickerOptions = options || { allowNarc:false, forceType:null };
+      pickerOptions = options || { forceType:null };
 
       $("#pickerTitle").text(title);
       $("#pickerSubtitle").text(subtitle || "");
       $("#pickerSearch").val("");
-
-      // Default type
-      const s = getSession();
-      const autoType = (s.modeKey === "SupplyChecks") ? "sup" : "med";
-
       $("#pickerType").val(pickerOptions.forceType || "auto");
 
-      renderPickerList(cfg, autoType);
-
+      renderPickerList(cfg);
       new bootstrap.Modal(document.getElementById("pickerModal")).show();
     }
 
@@ -1989,9 +1840,7 @@
       const s = getSession();
       const typeSel = $("#pickerType").val();
       const autoType = (s.modeKey === "SupplyChecks") ? "sup" : "med";
-
-      let type = typeSel === "auto" ? autoType : typeSel;
-
+      let type = (typeSel === "auto") ? autoType : typeSel;
       if (pickerOptions.forceType) type = pickerOptions.forceType;
 
       if (type === "med") return { type:"med", list: getMaster(cfg, "meds").filter(m => !m.isNarcotic) };
@@ -2006,10 +1855,7 @@
       const host = $("#pickerList");
       host.empty();
 
-      if (!list.length){
-        host.append(`<div class="text-muted">No matches.</div>`);
-        return;
-      }
+      if (!list.length){ host.append(`<div class="text-muted">No matches.</div>`); return; }
 
       list.slice(0, 80).forEach(x => {
         const sub = (src.type === "sup")
@@ -2021,7 +1867,7 @@
           : (src.type === "narc" ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
 
         const btn = $(`
-          <button type="button" class="btn btn-light w-100 text-start mb-2">
+          <button type="button" class="btn btn-light w-100 text-start mb-2" style="border-radius:18px;">
             <div class="d-flex justify-content-between align-items-start gap-2">
               <div>
                 <b>${escapeHtml(x.name)}</b>
@@ -2033,7 +1879,7 @@
         `);
 
         btn.on("click", () => {
-          if (pickerCallback) pickerCallback(src.type, x);
+          pickerCallback?.(src.type, x);
           bootstrap.Modal.getInstance(document.getElementById("pickerModal")).hide();
         });
         host.append(btn);
@@ -2041,7 +1887,7 @@
     }
 
     /******************************************************************
-     * INCIDENT WORKFLOW (role-aware + narc witness)
+     * INCIDENT WORKFLOW
      ******************************************************************/
     let incidentItems = [];
     let incidentScanner = null;
@@ -2053,8 +1899,7 @@
       if (!s?.service) return;
 
       const svc = getService(cfg, s.service);
-      const locs = (svc?.locations || []);
-      locs.forEach(l => sel.append(`<option value="${escapeAttr(l.id)}">${escapeHtml(l.label)}</option>`));
+      (svc?.locations || []).forEach(l => sel.append(`<option value="${escapeAttr(l.id)}">${escapeHtml(l.label)}</option>`));
     }
 
     function openIncident(cfg){
@@ -2062,18 +1907,15 @@
       $("#incidentNumber").val("");
       $("#incidentNotes").val("");
       hydrateIncidentLocationDropdown(cfg);
-
       renderIncidentRows(cfg);
       stopIncidentScanner();
       $("#qrIncidentWrap").hide();
       $("#btnIncidentStop").prop("disabled", true);
 
-      // role controls
       const s = getSession();
       const role = getRole(cfg, s.roleId);
       const canNarc = !!role?.canCheckoutNarcotics && (s.modeKey === "MedChecks");
       $("#btnIncidentAddNarc").prop("disabled", !canNarc);
-      $("#btnIncidentAddNarc").attr("title", canNarc ? "" : "Paramedic+ required (MedChecks only)");
 
       new bootstrap.Modal(document.getElementById("incidentModal")).show();
       addLog("Open Incident", "Create incident PDF");
@@ -2094,7 +1936,7 @@
             <td><b>${escapeHtml(it.item)}</b></td>
             <td><input class="form-control form-control-sm" data-i-idx="${idx}" data-field="doseQty" value="${escapeAttr(it.doseQty || "")}"/></td>
             <td><input class="form-control form-control-sm" data-i-idx="${idx}" data-field="details" value="${escapeAttr(it.details || "")}"/></td>
-            <td><button class="btn btn-sm btn-outline-danger" data-i-del="${idx}">X</button></td>
+            <td><button class="btn btn-sm btn-outline-danger" style="border-radius: 999px;" data-i-del="${idx}">X</button></td>
           </tr>
         `);
       });
@@ -2104,7 +1946,6 @@
         const f = $(this).data("field");
         incidentItems[i][f] = $(this).val();
       });
-
       body.find("button[data-i-del]").off("click").on("click", function(){
         const i = +$(this).data("i-del");
         incidentItems.splice(i,1);
@@ -2137,9 +1978,7 @@
 
     function stopIncidentScanner(){
       if (incidentScanner){
-        try{
-          incidentScanner.stop().then(() => incidentScanner.clear()).catch(()=>{});
-        }catch(_){}
+        try{ incidentScanner.stop().then(() => incidentScanner.clear()).catch(()=>{}); }catch(_){}
         incidentScanner = null;
       }
     }
@@ -2147,7 +1986,7 @@
     function addScannedToIncident(cfg, decodedText){
       const row = parseQrTextToItem(cfg, decodedText);
       row.details = "";
-      delete row.done; // incident doesn't use done checkbox
+      delete row.done;
 
       const s = getSession();
       const role = getRole(cfg, s.roleId);
@@ -2163,41 +2002,37 @@
       toast("Added", decodedText);
     }
 
+    function trunc(s, n){
+      s = String(s || "");
+      return s.length > n ? (s.slice(0, n-1) + "…") : s;
+    }
+
     function exportIncidentPdf(cfg){
       const s = getSession();
       const inc = ($("#incidentNumber").val() || "").trim();
-      if (!inc){
-        toast("Missing Incident #", "Enter an incident number first.");
-        return;
-      }
+      if (!inc){ toast("Missing Incident #", "Enter an incident number first."); return; }
+
       const notes = ($("#incidentNotes").val() || "").trim();
       const locId = ($("#incidentLocation").val() || "").trim();
-
       const svc = getService(cfg, s.service);
       const locLabel = svc?.locations?.find(l => l.id === locId)?.label || locId;
 
       const { jsPDF } = window.jspdf || {};
-      if (!jsPDF){
-        toast("PDF Missing", "jsPDF did not load.");
-        return;
-      }
+      if (!jsPDF){ toast("PDF Missing", "jsPDF did not load."); return; }
 
       const doc = new jsPDF({ unit:"pt", format:"letter" });
       let y = 54;
 
-      doc.setFont("helvetica","bold");
-      doc.setFontSize(16);
+      doc.setFont("helvetica","bold"); doc.setFontSize(16);
       doc.text("EMS Incident Item Summary", 54, y); y += 18;
 
-      doc.setFont("helvetica","normal");
-      doc.setFontSize(11);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11);
       doc.text(`Incident: ${inc}`, 54, y); y += 14;
       doc.text(`Service: ${s.service}   Location: ${locLabel}`, 54, y); y += 14;
       doc.text(`User: ${s.user}   Role: ${s.roleId}   Mode: ${s.modeKey}`, 54, y); y += 14;
       if (notes){ doc.text(`Notes: ${notes}`, 54, y); y += 14; }
       doc.text(`Generated: ${new Date().toLocaleString()}`, 54, y); y += 18;
 
-      // Header
       doc.setFont("helvetica","bold");
       doc.text("Type", 54, y);
       doc.text("Item", 120, y);
@@ -2228,27 +2063,14 @@
       toast("PDF Created", `Incident ${inc} exported.`);
     }
 
-    function trunc(s, n){
-      s = String(s || "");
-      return s.length > n ? (s.slice(0, n-1) + "…") : s;
-    }
-
-    // Incident checkout/waste reuse checklist rules
     function incidentSelectedItems(){
-      return incidentItems.map(x => ({
-        category: x.category,
-        isNarcotic: !!x.isNarcotic
-      }));
+      return incidentItems.map(x => ({ category: x.category, isNarcotic: !!x.isNarcotic }));
     }
 
     async function incidentCheckout(cfg){
       const items = incidentSelectedItems();
       const check = enforceCheckoutRules(cfg, items);
-      if (!check.ok){
-        toast("Not allowed", check.reason || "Permission denied.");
-        addLog("Incident Checkout Denied", check.reason || "Denied");
-        return;
-      }
+      if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Checkout Denied", check.reason); return; }
       const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
       addLog("Incident Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``}`);
       toast("Checked out", `${items.length} items logged.`);
@@ -2257,17 +2079,10 @@
     async function incidentWaste(cfg){
       const items = incidentSelectedItems();
       const check = enforceWasteRules(cfg, items);
-      if (!check.ok){
-        toast("Not allowed", check.reason || "Permission denied.");
-        addLog("Incident Waste Denied", check.reason || "Denied");
-        return;
-      }
+      if (!check.ok){ toast("Not allowed", check.reason); addLog("Incident Waste Denied", check.reason); return; }
+
       const witness = await requireWitnessIfNeeded(cfg, check.hasNarc);
-      if (!witness.ok){
-        toast("Cancelled", "Witness not provided.");
-        addLog("Incident Waste Cancelled", "No witness");
-        return;
-      }
+      if (!witness.ok){ toast("Cancelled", "Witness not provided."); addLog("Incident Waste Cancelled", "No witness"); return; }
 
       const narcCount = items.filter(x => x.category==="med" && x.isNarcotic).length;
       addLog("Incident Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``}`);
@@ -2279,24 +2094,13 @@
      ******************************************************************/
     function handleScenario(cfg, id){
       const s = getSession();
-      if (!s?.service){
-        toast("Login required", "Please login and select a service.");
-        showView("login");
-        return;
-      }
+      if (!s?.service){ toast("Login required", "Please login and select a service."); showView("login"); return; }
 
-      if (id === "createIncident"){
-        openIncident(cfg);
-        return;
-      }
+      if (id === "createIncident"){ openIncident(cfg); return; }
 
       if (id === "scanItem"){
-        // open checklist for first location and prompt scan
         const locs = getLocationsForCurrent(cfg);
-        if (!locs.length){
-          toast("No locations", "No locations for this mode/service.");
-          return;
-        }
+        if (!locs.length){ toast("No locations", "No locations for this mode/service."); return; }
         openChecklistForLocation(locs[0]);
         $("#qrRegionWrap").show();
         stopQrIfRunning();
@@ -2305,70 +2109,30 @@
           stopQrIfRunning();
           $("#btnStopScan").prop("disabled", true);
         });
-        if (qrScanner){
-          $("#btnStopScan").prop("disabled", false);
-          addLog("Start QR", "Scenario scan item");
-        }
-        return;
-      }
-
-      if (id === "checkoutMeds"){
-        // open incident quick checkout flow or open checklist
-        toast("Tip", "Open a location checklist, mark items Done, then use Check Out Selected.");
-        addLog("Scenario", "checkout meds");
-        return;
-      }
-
-      if (id === "wasteMeds"){
-        toast("Tip", "Open a location checklist, mark items Done, then use Waste Selected (narcotics need witness).");
-        addLog("Scenario", "waste meds");
+        if (qrScanner){ $("#btnStopScan").prop("disabled", false); addLog("Start QR", "Scenario scan item"); }
         return;
       }
 
       if (id === "runTodaysCheck"){
         const checks = buildScheduledChecksForCurrent(cfg);
         const first = checks.find(x => x.cadence === "daily") || checks[0];
-        if (!first){
-          toast("No checks", "No scheduled checks available.");
-          return;
-        }
+        if (!first){ toast("No checks", "No scheduled checks available."); return; }
         openChecklistForScheduledCheck(first);
         return;
       }
 
-      if (id === "stockSupplies"){
-        addLog("Stock", "Prototype stock action");
-        toast("Stock (demo)", "Logged locally. (Implement real inventory later.)");
-        return;
-      }
+      if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
+      if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
+      if (id === "stockSupplies"){ addLog("Stock", "Prototype stock action"); toast("Stock (demo)", "Logged locally."); return; }
+      if (id === "transferItems"){ addLog("Transfer", "Prototype transfer action"); toast("Transfer (demo)", "Logged locally."); return; }
+      if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
+      if (id === "searchLogs"){ handleReport(cfg, "searchLogs"); return; }
 
-      if (id === "transferItems"){
-        addLog("Transfer", "Prototype transfer action");
-        toast("Transfer (demo)", "Logged locally. (Implement movement later.)");
-        return;
-      }
-
-      if (id === "reportDiscrepancy"){
-        handleReport(cfg, "reportDiscrepancy");
-        return;
-      }
-
-      if (id === "searchLogs"){
-        handleReport(cfg, "searchLogs");
-        return;
-      }
-
-      toast("Scenario", `Clicked: ${id}`);
-      addLog("Scenario", id);
+      toast("Scenario", `Clicked: ${id}`); addLog("Scenario", id);
     }
 
     function handleReport(cfg, id){
-      if (id === "history"){
-        toast("History", "Showing latest activity below.");
-        addLog("Report", "History");
-        $("html, body").animate({ scrollTop: $(document).height() }, 350);
-        return;
-      }
+      if (id === "history"){ toast("History", "Showing latest activity below."); addLog("Report", "History"); showView("reports"); return; }
 
       if (id === "searchLogs"){
         const q = prompt("Search logs for keyword:");
@@ -2396,34 +2160,26 @@
     }
 
     /******************************************************************
-     * ADMIN: Service Admin
+     * ADMIN + SYSTEM ADMIN
      ******************************************************************/
     function loadServiceAdmin(cfg){
       const s = getSession();
       if (!s?.service) return;
-
-      const meds = getMaster(cfg, "meds");
-      const supplies = getMaster(cfg, "supplies");
-      $("#adminMedsJson").val(JSON.stringify(meds, null, 2));
-      $("#adminSuppliesJson").val(JSON.stringify(supplies, null, 2));
-
-      const svc = getService(cfg, s.service);
-      $("#adminServiceLocationsJson").val(JSON.stringify(svc.locations || [], null, 2));
+      $("#adminMedsJson").val(JSON.stringify(getMaster(cfg, "meds"), null, 2));
+      $("#adminSuppliesJson").val(JSON.stringify(getMaster(cfg, "supplies"), null, 2));
+      $("#adminServiceLocationsJson").val(JSON.stringify(getService(cfg, s.service).locations || [], null, 2));
     }
 
     function saveServiceAdminMeds(cfg){
       try{
         const arr = JSON.parse($("#adminMedsJson").val() || "[]");
         if (!Array.isArray(arr)) throw new Error("Meds JSON must be an array.");
-        // minimal validation
         arr.forEach(x => { if (!x.name) throw new Error("Each med must have a name."); });
         saveMaster("meds", arr);
         toast("Saved", "Med master list saved.");
         addLog("Admin Save", "Meds master list");
         renderAll(loadConfig());
-      }catch(e){
-        toast("Invalid JSON", e.message || "Error parsing meds JSON.");
-      }
+      }catch(e){ toast("Invalid JSON", e.message || "Error parsing meds JSON."); }
     }
 
     function saveServiceAdminSupplies(cfg){
@@ -2435,9 +2191,7 @@
         toast("Saved", "Supply master list saved.");
         addLog("Admin Save", "Supplies master list");
         renderAll(loadConfig());
-      }catch(e){
-        toast("Invalid JSON", e.message || "Error parsing supplies JSON.");
-      }
+      }catch(e){ toast("Invalid JSON", e.message || "Error parsing supplies JSON."); }
     }
 
     function saveServiceAdminLocations(cfg){
@@ -2450,15 +2204,11 @@
           if (!x.id || !x.label || !x.category) throw new Error("Each location needs id, label, category (med|sup).");
           if (!["med","sup"].includes(x.category)) throw new Error("category must be 'med' or 'sup'.");
         });
-
-        // save as override (partial object)
         saveServiceOverride(s.service, { locations: arr });
         toast("Saved", "Service locations saved.");
         addLog("Admin Save", `Locations for ${s.service}`);
         renderAll(loadConfig());
-      }catch(e){
-        toast("Invalid JSON", e.message || "Error parsing locations JSON.");
-      }
+      }catch(e){ toast("Invalid JSON", e.message || "Error parsing locations JSON."); }
     }
 
     function resetServiceAdmin(cfg){
@@ -2473,26 +2223,16 @@
       renderAll(loadConfig());
     }
 
-    /******************************************************************
-     * SYSTEM ADMIN: edit full config
-     ******************************************************************/
     function loadSystemAdmin(cfg){
       $("#sysConfigJson").val(JSON.stringify(cfg, null, 2));
     }
-
     function validateSystemConfig(){
-      try{
-        JSON.parse($("#sysConfigJson").val() || "{}");
-        toast("Valid JSON", "Config JSON parses successfully.");
-      }catch(e){
-        toast("Invalid JSON", e.message || "JSON parsing error.");
-      }
+      try{ JSON.parse($("#sysConfigJson").val() || "{}"); toast("Valid JSON", "Config parses successfully."); }
+      catch(e){ toast("Invalid JSON", e.message || "JSON parsing error."); }
     }
-
     function saveSystemConfig(){
       try{
         const cfg = JSON.parse($("#sysConfigJson").val() || "{}");
-        // minimal required shape checks
         if (!cfg.services || !Array.isArray(cfg.services)) throw new Error("Config must have services[]");
         if (!cfg.roles || !Array.isArray(cfg.roles)) throw new Error("Config must have roles[]");
         if (!cfg.users || !Array.isArray(cfg.users)) throw new Error("Config must have users[]");
@@ -2500,14 +2240,10 @@
         saveConfig(cfg);
         toast("Saved", "Config saved locally.");
         addLog("System Admin Save", "Full config updated");
-        // re-render + enforce nav visibility
         enforceNavVisibility();
         renderAll(loadConfig());
-      }catch(e){
-        toast("Invalid JSON", e.message || "Error saving config.");
-      }
+      }catch(e){ toast("Invalid JSON", e.message || "Error saving config."); }
     }
-
     function resetSystemConfig(){
       localStorage.removeItem(STORAGE_KEYS.config);
       const cfg = loadConfig();
@@ -2529,34 +2265,21 @@
         const cfg = loadConfig();
         const s = getSession();
 
-        if (key === "home"){
-          if (!s?.service){ showView("login"); return; }
-          showView("home");
-          return;
-        }
-        if (key === "iwant"){
-          if (!s?.service){ showView("login"); return; }
-          showView("iwant");
-          return;
-        }
-        if (key === "reports"){
-          if (!s?.service){ showView("login"); return; }
-          showView("reports");
-          return;
-        }
-        if (key === "docs"){
-          showView("docs");
-          return;
-        }
+        if (key === "home"){ if (!s?.service){ showView("login"); return; } showView("home"); return; }
+        if (key === "iwant"){ if (!s?.service){ showView("login"); return; } showView("iwant"); return; }
+        if (key === "reports"){ if (!s?.service){ showView("login"); return; } showView("reports"); return; }
+        if (key === "docs"){ showView("docs"); return; }
+
         if (key === "admin"){
           if (!s?.service || !(isServiceAdmin(cfg, s) || isSystemAdmin(cfg, s))){
-            toast("Not allowed", "Service Admin (for this service) or System Admin required.");
+            toast("Not allowed", "Service Admin or System Admin required.");
             return;
           }
           loadServiceAdmin(cfg);
           showView("admin");
           return;
         }
+
         if (key === "sysadmin"){
           if (!s?.service || !isSystemAdmin(cfg, s)){
             toast("Not allowed", "System Admin required.");
@@ -2568,14 +2291,12 @@
         }
       });
 
-      // Help question marks
+      // Help
       $(document).on("click", ".help-q[data-help]", function(){
-        const cfg = loadConfig();
-        const key = $(this).data("help");
-        openHelp(cfg, key);
+        openHelp(loadConfig(), $(this).data("help"));
       });
 
-      // Login / service / role
+      // Login
       $("#btnLogin").on("click", doLogin);
       $("#btnEnterApp").on("click", enterApp);
       $("#btnApplyRole").on("click", applyRoleOverride);
@@ -2585,13 +2306,9 @@
       $("#btnSwitchMode").on("click", () => {
         const cfg = loadConfig();
         const s = getSession();
-        if (!s){
-          toast("Login first", "Please login first.");
-          return;
-        }
+        if (!s){ toast("Login first", "Please login first."); return; }
         s.modeKey = (s.modeKey === "MedChecks") ? "SupplyChecks" : "MedChecks";
         setSession(s);
-
         applyModeTheme(s.modeKey);
         hydrateTopPills();
         renderAll(cfg);
@@ -2607,23 +2324,19 @@
         renderChecks(loadConfig());
       });
 
-      // Checklist modal actions
+      // Checklist actions
       $("#btnSaveChecklist").on("click", saveChecklist);
       $("#btnCheckout").on("click", checkoutFromChecklist);
       $("#btnWaste").on("click", wasteFromChecklist);
       $("#btnMarkDiscrepancy").on("click", discrepancyFromChecklist);
 
-      // Checklist manual add
+      // Manual add
       $("#btnAddManual").on("click", () => {
         const cfg = loadConfig();
         if (!currentChecklist) return;
-
-        const s = getSession();
-        const autoType = (s.modeKey === "SupplyChecks") ? "sup" : "med";
-
-        openPicker(cfg, "Add Item", `To: ${currentChecklist.title}`, { forceType: "auto" }, (type, item) => {
+        openPicker(cfg, "Add Item", `To: ${currentChecklist.title}`, { forceType:null }, (type, item) => {
           const row = {
-            done: false,
+            done:false,
             category: (type === "sup") ? "sup" : "med",
             isNarcotic: (type === "narc") ? true : !!item.isNarcotic,
             item: item.name,
@@ -2639,22 +2352,10 @@
       $("#btnAddNarcManual").on("click", () => {
         const cfg = loadConfig();
         const s = getSession();
-        const role = getRole(cfg, s.roleId);
-        if (!role?.canCheckoutNarcotics){
-          toast("Not allowed", "Paramedic+ required.");
-          return;
-        }
+        if (!getRole(cfg, s.roleId)?.canCheckoutNarcotics){ toast("Not allowed", "Paramedic+ required."); return; }
         if (!currentChecklist) return;
-
-        openPicker(cfg, "Add Narcotic", `To: ${currentChecklist.title}`, { forceType: "narc" }, (type, item) => {
-          const row = {
-            done: false,
-            category: "med",
-            isNarcotic: true,
-            item: item.name,
-            doseQty: item.defaultDose || "",
-            notes: item.notes || ""
-          };
+        openPicker(cfg, "Add Narcotic", `To: ${currentChecklist.title}`, { forceType:"narc" }, (type, item) => {
+          const row = { done:false, category:"med", isNarcotic:true, item:item.name, doseQty:item.defaultDose || "", notes:item.notes || "" };
           currentChecklist.rows.unshift(row);
           renderChecklistRows(cfg);
           addLog("Add Narcotic", item.name);
@@ -2668,21 +2369,14 @@
       // Checklist QR
       $("#btnScanQr").on("click", () => {
         if (!currentChecklist) return;
-        const cfg = loadConfig();
-
         $("#qrRegionWrap").show();
         stopQrIfRunning();
-
         qrScanner = startQrScanner("qr-reader", (text) => {
           addScannedToChecklist(text);
           stopQrIfRunning();
           $("#btnStopScan").prop("disabled", true);
         });
-
-        if (qrScanner){
-          $("#btnStopScan").prop("disabled", false);
-          addLog("Start QR", currentChecklist.title);
-        }
+        if (qrScanner){ $("#btnStopScan").prop("disabled", false); addLog("Start QR", currentChecklist.title); }
       });
 
       $("#btnStopScan").on("click", () => {
@@ -2692,91 +2386,21 @@
         addLog("Stop QR", currentChecklist?.title || "");
       });
 
-      // Witness confirm
+      // Witness
       $("#btnWitnessConfirm").on("click", () => witnessConfirm(loadConfig()));
 
-      // Incident actions
-      $("#btnIncidentAdd").on("click", () => {
-        const cfg = loadConfig();
-        openPicker(cfg, "Add Item to Incident", "Pick meds/supplies (use dropdown to switch).", { forceType:null }, (type, item) => {
-          addIncidentItem(cfg, type, item);
-        });
-      });
+      // Reports utilities
+      $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
+      $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });
 
-      $("#btnIncidentAddNarc").on("click", () => {
-        const cfg = loadConfig();
-        const s = getSession();
-        const role = getRole(cfg, s.roleId);
-        if (!role?.canCheckoutNarcotics){
-          toast("Not allowed", "Paramedic+ required.");
-          return;
-        }
-        openPicker(cfg, "Add Narcotic to Incident", "Narcotics list (Paramedic+).", { forceType:"narc" }, (type, item) => {
-          addIncidentItem(cfg, type, item);
-        });
-      });
-
-      $("#btnIncidentScan").on("click", () => {
-        const cfg = loadConfig();
-        $("#qrIncidentWrap").show();
-        stopIncidentScanner();
-
-        if (typeof Html5Qrcode === "undefined"){
-          toast("QR Scanner Missing", "Html5Qrcode is not defined. Check the CDN include.");
-          return;
-        }
-
-        incidentScanner = new Html5Qrcode("qr-reader-incident");
-        incidentScanner.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          (decodedText) => {
-            addScannedToIncident(cfg, decodedText);
-            stopIncidentScanner();
-            $("#btnIncidentStop").prop("disabled", true);
-          },
-          () => {}
-        ).then(() => {
-          $("#btnIncidentStop").prop("disabled", false);
-          addLog("Start Incident QR", "Incident");
-        }).catch(e => {
-          toast("Camera Error", (e && e.message) ? e.message : "Unable to start camera.");
-        });
-      });
-
-      $("#btnIncidentStop").on("click", () => {
-        stopIncidentScanner();
-        $("#btnIncidentStop").prop("disabled", true);
-        $("#qrIncidentWrap").hide();
-        addLog("Stop Incident QR", "Incident");
-      });
-
-      $("#btnIncidentExportPdf").on("click", () => exportIncidentPdf(loadConfig()));
-      $("#btnIncidentCheckout").on("click", () => incidentCheckout(loadConfig()));
-      $("#btnIncidentWaste").on("click", () => incidentWaste(loadConfig()));
-
-      // Reports utility buttons
-      $("#btnClearLogs").on("click", () => {
-        localStorage.removeItem(STORAGE_KEYS.logs);
-        renderLogs();
-        toast("Cleared", "Logs cleared.");
-      });
-      $("#btnExportLogsJson").on("click", () => {
-        const logs = getLogs();
-        $("#logExportBox").show().text(JSON.stringify(logs, null, 2));
-        toast("Export", "Logs shown as JSON below.");
-      });
-
-      // Docs
+      // Docs open all
       $("#btnOpenAllDocs").on("click", () => {
         const cfg = loadConfig();
-        // Build combined modal body
         const topics = cfg.docs || {};
-        const keys = Object.keys(topics);
         let html = "";
-        keys.forEach(k => {
+        Object.keys(topics).forEach(k => {
           const t = topics[k];
-          html += `<hr/><h5 style="font-weight:900;">${escapeHtml(t.title || k)}</h5>`;
+          html += `<hr/><h5 style="font-weight:950;">${escapeHtml(t.title || k)}</h5>`;
           if (t.subtitle) html += `<div class="text-muted mb-2">${escapeHtml(t.subtitle)}</div>`;
           html += `<div>${t.html || ""}</div>`;
         });
@@ -2786,13 +2410,11 @@
         new bootstrap.Modal(document.getElementById("helpModal")).show();
       });
 
-      // Service Admin saves
+      // Admin saves
       $("#btnSaveMedsJson").on("click", () => saveServiceAdminMeds(loadConfig()));
       $("#btnSaveSuppliesJson").on("click", () => saveServiceAdminSupplies(loadConfig()));
       $("#btnSaveServiceLocationsJson").on("click", () => saveServiceAdminLocations(loadConfig()));
-      $("#btnResetMedsJson, #btnResetSuppliesJson, #btnResetServiceLocationsJson").on("click", () => {
-        resetServiceAdmin(loadConfig());
-      });
+      $("#btnResetMedsJson, #btnResetSuppliesJson, #btnResetServiceLocationsJson").on("click", () => resetServiceAdmin(loadConfig()));
 
       // System Admin config
       $("#btnSysValidateConfig").on("click", validateSystemConfig);
@@ -2812,7 +2434,6 @@
 
       const s = getSession();
       if (!s){
-        // init login page defaults
         $("#btnLogout").hide();
         $("#adminNav").hide();
         $("#sysAdminNav").hide();
@@ -2827,10 +2448,8 @@
       applyModeTheme(s.modeKey || "MedChecks");
       $("#btnLogout").show();
 
-      // Populate service select + role select
       buildServiceSelect(cfg);
       buildRoleSelect(cfg);
-
       $("#roleSelect").val(s.roleId || "EMT");
 
       if (!s.service){

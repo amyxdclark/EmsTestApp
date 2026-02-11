@@ -149,12 +149,16 @@ const DEFAULT_CONFIG = {
     { id:"stockSupplies", label:"Stock supplies", tag:"Supply", meta:"Prototype stock action (log entry)", requiresLogin:true },
     { id:"transferItems", label:"Transfer items", tag:"Inventory", meta:"Prototype transfer action (log entry)", requiresLogin:true },
     { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Missing/damaged/expired", requiresLogin:true },
-    { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Search local logs by keyword", requiresLogin:true }
+    { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Search local logs by keyword", requiresLogin:true },
+    { id:"narcShiftCount", label:"Narcotic Shift Count", tag:"DEA", meta:"Dual-provider shift change count", requiresLogin:true },
+    { id:"narcTransfer", label:"Transfer Narcotic Custody", tag:"DEA", meta:"Chain of custody documentation", requiresLogin:true },
+    { id:"checkExpirations", label:"Check Expirations", tag:"Report", meta:"Items expiring within 30/60/90 days", requiresLogin:true }
   ],
   reports:[
     { id:"history", label:"History", tag:"Log", meta:"View recent actions" },
     { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Filter by keywords" },
-    { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Create a discrepancy record" }
+    { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Create a discrepancy record" },
+    { id:"expirationReport", label:"Expiration Report", tag:"Report", meta:"Items expiring soon" }
   ],
   docs:{
     login:{ title:"Login (Prototype)", subtitle:"Demo accounts and role assignment",

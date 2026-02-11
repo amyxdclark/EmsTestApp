@@ -92,16 +92,26 @@ function renderChecklistRows(cfg){
   const body = $("#checklistBody");
   body.empty();
 
+  const allMeds = getMaster(cfg, "meds");
+
   currentChecklist.rows.forEach((r, idx) => {
     const typeBadge = r.category === "sup"
       ? `<span class="badge text-bg-danger">SUP</span>`
       : (r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
 
+    let scheduleBadge = "";
+    if (r.isNarcotic && r.category === "med"){
+      const medItem = allMeds.find(m => m.name === r.item);
+      if (medItem?.deaSchedule){
+        scheduleBadge = ` <span class="badge text-bg-dark">Sched ${escapeHtml(medItem.deaSchedule)}</span>`;
+      }
+    }
+
     body.append(`
       <tr>
         <td><input type="checkbox" class="form-check-input" data-idx="${idx}" ${r.done ? "checked":""} /></td>
         <td><b>${escapeHtml(r.item)}</b></td>
-        <td>${typeBadge}</td>
+        <td>${typeBadge}${scheduleBadge}</td>
         <td><input class="form-control form-control-sm" data-field="doseQty" data-idx="${idx}" value="${escapeAttr(r.doseQty || "")}" /></td>
         <td><input class="form-control form-control-sm" data-field="notes" data-idx="${idx}" value="${escapeAttr(r.notes || "")}" /></td>
         <td><button class="btn btn-sm btn-outline-danger" style="border-radius: 999px;" data-del="${idx}">X</button></td>
@@ -323,6 +333,11 @@ function renderPickerList(cfg){
       ? `<span class="badge text-bg-danger">SUP</span>`
       : (src.type === "narc" ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
 
+    let scheduleBadge = "";
+    if (src.type === "narc" && x.deaSchedule){
+      scheduleBadge = ` <span class="badge text-bg-dark">Sched ${escapeHtml(x.deaSchedule)}</span>`;
+    }
+
     const btn = $(`
       <button type="button" class="btn btn-light w-100 text-start mb-2" style="border-radius:18px;">
         <div class="d-flex justify-content-between align-items-start gap-2">
@@ -330,7 +345,7 @@ function renderPickerList(cfg){
             <b>${escapeHtml(x.name)}</b>
             <div class="small text-muted">${escapeHtml(sub)}</div>
           </div>
-          <div>${badge}</div>
+          <div>${badge}${scheduleBadge}</div>
         </div>
       </button>
     `);

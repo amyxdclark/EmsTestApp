@@ -140,6 +140,9 @@ function handleScenario(cfg, id){
   if (id === "transferItems"){ addLog("Transfer", "Prototype transfer action"); toast("Transfer (demo)", "Logged locally."); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
   if (id === "searchLogs"){ handleReport(cfg, "searchLogs"); return; }
+  if (id === "narcShiftCount"){ openNarcShiftCount(cfg); return; }
+  if (id === "narcTransfer"){ openNarcTransfer(cfg); return; }
+  if (id === "checkExpirations"){ handleReport(cfg, "expirationReport"); return; }
 
   toast("Scenario", `Clicked: ${id}`); addLog("Scenario", id);
 }
@@ -319,6 +322,10 @@ $(function(){
   });
 
   $("#btnWitnessConfirm").on("click", () => witnessConfirm(loadConfig()));
+
+  $("#btnConfirmShiftCount").on("click", () => confirmShiftCount(loadConfig()));
+  $("#btnConfirmTransfer").on("click", () => confirmNarcTransfer(loadConfig()));
+  $("#btnConfirmPartialWaste").on("click", () => confirmPartialWaste(loadConfig()));
 
   $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
   $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });

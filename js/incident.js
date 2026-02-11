@@ -24,14 +24,24 @@ function renderIncidentRows(cfg){
   const body = $("#incidentBody");
   body.empty();
 
+  const allMeds = getMaster(cfg, "meds");
+
   incidentItems.forEach((it, idx) => {
     const badge = it.category === "sup"
       ? `<span class="badge text-bg-danger">SUP</span>`
       : (it.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
 
+    let scheduleBadge = "";
+    if (it.isNarcotic && it.category === "med"){
+      const medItem = allMeds.find(m => m.name === it.item);
+      if (medItem?.deaSchedule){
+        scheduleBadge = ` <span class="badge text-bg-dark">Sched ${escapeHtml(medItem.deaSchedule)}</span>`;
+      }
+    }
+
     body.append(`
       <tr>
-        <td>${badge}</td>
+        <td>${badge}${scheduleBadge}</td>
         <td><b>${escapeHtml(it.item)}</b></td>
         <td><input class="form-control form-control-sm" data-i-idx="${idx}" data-field="doseQty" value="${escapeAttr(it.doseQty || "")}"/></td>
         <td><input class="form-control form-control-sm" data-i-idx="${idx}" data-field="details" value="${escapeAttr(it.details || "")}"/></td>

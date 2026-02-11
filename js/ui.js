@@ -194,6 +194,7 @@ function renderInventory(cfg){
 
 function renderAll(cfg){
   hydrateTopPills();
+  renderBulletins(cfg);
   renderInventory(cfg);
   renderChecks(cfg);
   renderScenarios(cfg);
@@ -201,6 +202,48 @@ function renderAll(cfg){
   renderDocsList(cfg);
   renderLogs();
   hydrateIncidentLocationDropdown(cfg);
+}
+
+function renderBulletins(cfg){
+  const wrap = $("#bulletinsSection");
+  if (!wrap.length) return;
+  
+  wrap.empty();
+  
+  const bulletins = cfg.bulletins || [];
+  if (bulletins.length === 0) return;
+  
+  wrap.append(`
+    <div class="section-card">
+      <div class="section-header">
+        <div>
+          <h4 class="section-title mb-0" style="font-weight:950;">📢 Bulletins & Announcements</h4>
+          <div class="section-sub">Recent station updates and notices</div>
+        </div>
+      </div>
+      <div id="bulletinsList"></div>
+    </div>
+  `);
+  
+  const list = $("#bulletinsList");
+  bulletins.slice(0, 5).forEach(b => {
+    const priorityBadge = b.priority === "high" 
+      ? `<span class="badge text-bg-danger">High Priority</span>` 
+      : `<span class="badge text-bg-secondary">Notice</span>`;
+    
+    list.append(`
+      <div class="panel-white">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          <div>
+            <h6 style="font-weight:950; margin-bottom: 4px;">${escapeHtml(b.title)}</h6>
+            <div class="small text-muted">${escapeHtml(b.date)} • ${escapeHtml(b.author)}</div>
+          </div>
+          ${priorityBadge}
+        </div>
+        <div>${escapeHtml(b.content)}</div>
+      </div>
+    `);
+  });
 }
 
 function hydrateTopPills(){

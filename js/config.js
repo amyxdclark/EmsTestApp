@@ -166,7 +166,8 @@ const DEFAULT_CONFIG = {
     { id:"searchLogs", label:"Search logs", tag:"Log", meta:"Filter by keywords" },
     { id:"reportDiscrepancy", label:"Report discrepancy", tag:"Report", meta:"Create a discrepancy record" },
     { id:"expirationReport", label:"Expiration Report", tag:"Report", meta:"Items expiring soon" },
-    { id:"parLevelReport", label:"Par Level Report", tag:"Inventory", meta:"Items below par levels" }
+    { id:"parLevelReport", label:"Par Level Report", tag:"Inventory", meta:"Items below par levels" },
+    { id:"complianceReport", label:"Compliance Summary", tag:"Analytics", meta:"Check completion rates" }
   ],
   docs:{
     login:{ title:"Login (Prototype)", subtitle:"Demo accounts and role assignment",
@@ -316,5 +317,10 @@ const DEFAULT_CONFIG = {
     userCertifications: {},
     userSkills: {},
     trainingRecords: []
-  }
+  },
+  bulletins: [
+    { id:1, date:"2026-02-10", author:"Chief Smith", title:"New STEMI Protocol Update", content:"Effective immediately, all STEMI patients should receive 12-lead ECG within 10 minutes of patient contact. Update your protocols.", priority:"high" },
+    { id:2, date:"2026-02-08", author:"Training Office", title:"Upcoming ACLS Recertification", content:"ACLS recertification sessions scheduled for March 15-17. Sign up in the training office.", priority:"normal" },
+    { id:3, date:"2026-02-05", author:"Fleet Manager", title:"Vehicle Maintenance Schedule", content:"Unit 42 scheduled for PM service Feb 20. Unit 43 scheduled for Feb 22.", priority:"normal" }
+  ]
 };

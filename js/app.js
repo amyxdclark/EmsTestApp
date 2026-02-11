@@ -186,6 +186,12 @@ function handleReport(cfg, id){
     showView("reports");
     return;
   }
+
+  if (id === "complianceReport"){
+    generateComplianceReport(cfg);
+    showView("reports");
+    return;
+  }
 }
 
 function getLocationsForCurrent(cfg){
@@ -1047,4 +1053,157 @@ function exportReorderCsv(belowPar){
   
   addLog("Export CSV", "Reorder List");
   toast("CSV Exported", a.download);
+}
+
+// Compliance and Analytics Report
+function generateComplianceReport(cfg){
+  const logs = getLogs();
+  
+  // Analyze logs for compliance metrics
+  const checklistSaves = logs.filter(l => l.action === "Save Checklist");
+  const narcCounts = logs.filter(l => l.action === "Narcotic Shift Count");
+  const truckChecks = logs.filter(l => l.action === "Morning Truck Check");
+  const discrepancies = logs.filter(l => l.action === "Discrepancy" || l.action.includes("Discrepancy"));
+  const checkouts = logs.filter(l => l.action === "Checkout");
+  const wastes = logs.filter(l => l.action === "Waste");
+  
+  // Calculate rates based on last 30 days
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  const recentSaves = checklistSaves.filter(l => new Date(l.t) > thirtyDaysAgo);
+  const recentNarc = narcCounts.filter(l => new Date(l.t) > thirtyDaysAgo);
+  const recentTruck = truckChecks.filter(l => new Date(l.t) > thirtyDaysAgo);
+  
+  // Group narcotic actions by drug
+  const narcUsage = {};
+  wastes.filter(l => l.details && l.details.includes("narcotic")).forEach(l => {
+    // Simple parsing for demo
+    narcUsage["Narcotics"] = (narcUsage["Narcotics"] || 0) + 1;
+  });
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Compliance & Analytics Summary</h5>
+      <div class="small-note mb-3">Generated: ${now.toLocaleString()} • Last 30 days</div>
+      
+      <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Checklist Completions</h6>
+            <div class="display-6">${recentSaves.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Narcotic Counts</h6>
+            <div class="display-6">${recentNarc.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Truck Checks</h6>
+            <div class="display-6">${recentTruck.length}</div>
+            <div class="small text-muted">Last 30 days</div>
+          </div>
+        </div>
+        
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="panel-white bg-light">
+            <h6 style="font-weight:950;">Discrepancies</h6>
+            <div class="display-6">${discrepancies.length}</div>
+            <div class="small text-muted">All time</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-3">
+        <h6 style="font-weight:950;">Activity Breakdown (All Time)</h6>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Action Type</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Checklist Saves</td><td><b>${checklistSaves.length}</b></td></tr>
+            <tr><td>Narcotic Shift Counts</td><td><b>${narcCounts.length}</b></td></tr>
+            <tr><td>Morning Truck Checks</td><td><b>${truckChecks.length}</b></td></tr>
+            <tr><td>Checkouts</td><td><b>${checkouts.length}</b></td></tr>
+            <tr><td>Wastes</td><td><b>${wastes.length}</b></td></tr>
+            <tr><td>Discrepancies Reported</td><td><b>${discrepancies.length}</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="alert alert-info mt-3">
+        <b>📊 Insights:</b>
+        <ul class="mb-0">
+          ${recentSaves.length > 0 ? `<li>Average ${(recentSaves.length / 30).toFixed(1)} checklist completions per day.</li>` : '<li>No checklist activity in last 30 days.</li>'}
+          ${recentTruck.length > 0 ? `<li>Truck checks performed ${recentTruck.length} times (Goal: 30/month).</li>` : '<li>No truck checks in last 30 days.</li>'}
+          ${discrepancies.length > 0 ? `<li>${discrepancies.length} discrepancies reported - review for patterns.</li>` : '<li>No discrepancies reported.</li>'}
+        </ul>
+      </div>
+      
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportCompliancePdf">Export as PDF</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportCompliancePdf").off("click").on("click", () => {
+    exportCompliancePdf(recentSaves, recentNarc, recentTruck, discrepancies);
+  });
+  
+  addLog("Report", "Compliance Summary");
+  toast("Compliance Report", "Report generated.");
+}
+
+function exportCompliancePdf(recentSaves, recentNarc, recentTruck, discrepancies){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Compliance & Analytics Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 6;
+  doc.text(`Period: Last 30 days`, 14, y); y += 10;
+  
+  doc.setFontSize(14);
+  doc.text("Summary Metrics", 14, y); y += 8;
+  doc.setFontSize(11);
+  doc.text(`Checklist Completions: ${recentSaves.length}`, 16, y); y += 6;
+  doc.text(`Narcotic Counts: ${recentNarc.length}`, 16, y); y += 6;
+  doc.text(`Truck Checks: ${recentTruck.length}`, 16, y); y += 6;
+  doc.text(`Discrepancies: ${discrepancies.length}`, 16, y); y += 10;
+  
+  doc.setFontSize(14);
+  doc.text("Insights", 14, y); y += 8;
+  doc.setFontSize(9);
+  doc.text(`- Average ${(recentSaves.length / 30).toFixed(1)} checklist completions per day`, 16, y); y += 5;
+  doc.text(`- Truck checks: ${recentTruck.length} (Goal: 30/month)`, 16, y); y += 5;
+  if (discrepancies.length > 0){
+    doc.text(`- ${discrepancies.length} discrepancies reported - review for patterns`, 16, y); y += 5;
+  }
+  
+  const fileName = `ComplianceReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Compliance Report: ${fileName}`);
+  toast("PDF Exported", fileName);
 }

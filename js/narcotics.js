@@ -330,8 +330,61 @@ function confirmPartialWaste(cfg){
 
   const logDetail = `Med: ${med}, Total: ${total}, Administered: ${administered}, Wasted: ${wasted}, Method: ${method}${lot ? `, Lot: ${lot}` : ""}, Witness: ${witnessUser}`;
   addLog("Partial Dose Waste", logDetail);
+  
+  // Generate PDF documentation for partial waste
+  exportPartialWastePdf(s.user, med, total, administered, wasted, method, lot, witnessUser);
+  
   toast("Waste logged", `${med} partial waste documented.`);
 
   bootstrap.Modal.getInstance(document.getElementById("partialWasteModal")).hide();
+}
+
+function exportPartialWastePdf(provider, medication, total, administered, wasted, method, lot, witnessUser){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Partial Dose Waste Documentation", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Date/Time: ${new Date().toLocaleString()}`, 14, y); y += 6;
+  doc.text(`Provider: ${provider}`, 14, y); y += 6;
+  doc.text(`Witness: ${witnessUser}`, 14, y); y += 10;
+  
+  doc.setFontSize(12);
+  doc.text("Medication Information:", 14, y); y += 8;
+  
+  doc.setFontSize(10);
+  doc.text(`Medication: ${medication}`, 14, y); y += 6;
+  doc.text(`Total Dose: ${total}`, 14, y); y += 6;
+  doc.text(`Amount Administered: ${administered}`, 14, y); y += 6;
+  doc.text(`Amount Wasted: ${wasted}`, 14, y); y += 6;
+  doc.text(`Waste Method: ${method}`, 14, y); y += 6;
+  if (lot){
+    doc.text(`Lot Number: ${lot}`, 14, y); y += 6;
+  }
+  
+  y += 10;
+  doc.setFontSize(9);
+  doc.text("This document certifies that the above medication was partially administered", 14, y); y += 5;
+  doc.text("and the remaining portion was wasted according to DEA regulations.", 14, y); y += 10;
+  
+  y += 15;
+  if (y > 250){ doc.addPage(); y = 20; }
+  doc.text("Provider Signature:", 14, y); y += 10;
+  doc.text(`________________________ (${provider})`, 14, y); y += 15;
+  doc.text("Witness Signature:", 14, y); y += 10;
+  doc.text(`________________________ (${witnessUser})`, 14, y);
+  
+  const fileName = `PartialWaste_${medication.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}_${Date.now()}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Partial Waste: ${fileName}`);
 }
 

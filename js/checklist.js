@@ -221,8 +221,11 @@ function checkoutFromChecklist(){
   // Build itemized details string
   const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
 
-  addLog("Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``} • ${currentChecklist.title}: ${itemDetails}`);
-  toast("Checked out", `${items.length} items logged.`);
+  // Generate transaction ID for this checkout
+  const txId = generateTransactionId();
+
+  addLog("Checkout", `${items.length} items${narcCount?` (${narcCount} narcotics)`:``} • ${currentChecklist.title}: ${itemDetails}`, txId);
+  toast("Checked out", `${items.length} items logged. TX: ${txId}`);
 }
 
 async function wasteFromChecklist(){
@@ -242,8 +245,11 @@ async function wasteFromChecklist(){
   // Build itemized details string
   const itemDetails = items.map(it => `${it.item} (${it.doseQty || "qty not specified"})`).join(", ");
 
-  addLog("Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``} • ${currentChecklist.title}: ${itemDetails}`);
-  toast("Waste logged", `${items.length} items logged.`);
+  // Generate transaction ID for this waste
+  const txId = generateTransactionId();
+
+  addLog("Waste", `${items.length} items${narcCount?` (${narcCount} narcotics, witness=${witness.witnessUser})`:``} • ${currentChecklist.title}: ${itemDetails}`, txId);
+  toast("Waste logged", `${items.length} items logged. TX: ${txId}`);
 }
 
 function discrepancyFromChecklist(){

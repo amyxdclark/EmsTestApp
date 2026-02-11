@@ -173,6 +173,13 @@ function handleReport(cfg, id){
     }
     return;
   }
+
+  if (id === "expirationReport"){
+    toast("Expiration Report", "This feature displays items expiring within 30/60/90 days (prototype).");
+    addLog("Report", "Expiration Report");
+    showView("reports");
+    return;
+  }
 }
 
 function getLocationsForCurrent(cfg){

@@ -91,12 +91,12 @@ const DEFAULT_CONFIG = {
       { name:"Normal Saline 1000mL", defaultDose:"1 L IV", isNarcotic:false, notes:"fluid resuscitation" },
       { name:"Lactated Ringers 1000mL", defaultDose:"1 L IV", isNarcotic:false, notes:"fluid resuscitation" },
       { name:"Tranexamic Acid (TXA)", defaultDose:"1 g IV", isNarcotic:false, notes:"hemorrhage control" },
-      { name:"Fentanyl", defaultDose:"25–100 mcg IV/IN", isNarcotic:true, deaSchedule:"II", notes:"pain" },
-      { name:"Morphine", defaultDose:"2–10 mg IV", isNarcotic:true, deaSchedule:"II", notes:"pain" },
-      { name:"Ketamine", defaultDose:"0.2–0.5 mg/kg IV", isNarcotic:true, deaSchedule:"III", notes:"pain, sedation" },
-      { name:"Midazolam", defaultDose:"2–5 mg IV/IN", isNarcotic:true, deaSchedule:"IV", notes:"seizure, sedation" },
-      { name:"Lorazepam", defaultDose:"2–4 mg IV/IM", isNarcotic:true, deaSchedule:"IV", notes:"seizure, anxiety" },
-      { name:"Diazepam", defaultDose:"5–10 mg IV", isNarcotic:true, deaSchedule:"IV", notes:"seizure, muscle relaxant" }
+      { name:"Fentanyl", defaultDose:"25–100 mcg IV/IN", isNarcotic:true, deaSchedule:"II", notes:"pain", quantity:2, lotNumber:"FEN2024-A", expirationDate:"2026-08-15" },
+      { name:"Morphine", defaultDose:"2–10 mg IV", isNarcotic:true, deaSchedule:"II", notes:"pain", quantity:2, lotNumber:"MOR2024-B", expirationDate:"2026-09-20" },
+      { name:"Ketamine", defaultDose:"0.2–0.5 mg/kg IV", isNarcotic:true, deaSchedule:"III", notes:"pain, sedation", quantity:2, lotNumber:"KET2024-C", expirationDate:"2026-07-10" },
+      { name:"Midazolam", defaultDose:"2–5 mg IV/IN", isNarcotic:true, deaSchedule:"IV", notes:"seizure, sedation", quantity:3, lotNumber:"MID2024-D", expirationDate:"2026-10-05" },
+      { name:"Lorazepam", defaultDose:"2–4 mg IV/IM", isNarcotic:true, deaSchedule:"IV", notes:"seizure, anxiety", quantity:2, lotNumber:"LOR2024-E", expirationDate:"2026-06-25" },
+      { name:"Diazepam", defaultDose:"5–10 mg IV", isNarcotic:true, deaSchedule:"IV", notes:"seizure, muscle relaxant", quantity:2, lotNumber:"DIA2024-F", expirationDate:"2026-11-15" }
     ],
     supplies:[
       { name:"O2 Nasal Cannula", par:"10", notes:"adult" },

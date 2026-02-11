@@ -188,7 +188,8 @@ function getLocationsForCurrent(cfg){
   const svc = getService(cfg, s.service);
   if (!svc) return [];
   const category = (s.modeKey === "MedChecks") ? "med" : "sup";
-  return (svc.locations || []).filter(l => l.category === category);
+  // Equipment is always visible regardless of mode
+  return (svc.locations || []).filter(l => l.category === category || l.category === "equip");
 }
 
 function buildScheduledChecksForCurrent(cfg){

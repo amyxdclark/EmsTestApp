@@ -182,9 +182,10 @@ function renderInventory(cfg){
   }
 
   locs.forEach(loc => {
+    const badgeText = loc.category === "equip" ? "EQUIP" : (s.modeKey === "MedChecks" ? "MED" : "SUP");
     wrap.append(squareButton(
       loc.label,
-      s.modeKey === "MedChecks" ? "MED" : "SUP",
+      badgeText,
       "Open checklist",
       () => openChecklistForLocation(loc)
     ));

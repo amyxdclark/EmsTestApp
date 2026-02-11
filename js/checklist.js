@@ -11,13 +11,21 @@ function persistChecklistState(key, value){
 }
 
 function seedRowsFromMaster(cfg, category){
-  const list = (category === "med") ? getMaster(cfg, "meds") : getMaster(cfg, "supplies");
-  return list.slice(0, 8).map(x => ({
+  let list;
+  if (category === "med") {
+    list = getMaster(cfg, "meds");
+  } else if (category === "equip") {
+    list = getMaster(cfg, "equipment");
+  } else {
+    list = getMaster(cfg, "supplies");
+  }
+  
+  return list.map(x => ({
     done:false,
     category,
     isNarcotic: !!x.isNarcotic,
     item:x.name,
-    doseQty: (category === "med") ? (x.defaultDose || "") : (x.par || ""),
+    doseQty: (category === "med") ? (x.defaultDose || "") : (category === "equip" ? "" : (x.par || "")),
     notes: x.notes || ""
   }));
 }
@@ -95,9 +103,14 @@ function renderChecklistRows(cfg){
   const allMeds = getMaster(cfg, "meds");
 
   currentChecklist.rows.forEach((r, idx) => {
-    const typeBadge = r.category === "sup"
-      ? `<span class="badge text-bg-danger">SUP</span>`
-      : (r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`);
+    let typeBadge;
+    if (r.category === "sup") {
+      typeBadge = `<span class="badge text-bg-danger">SUP</span>`;
+    } else if (r.category === "equip") {
+      typeBadge = `<span class="badge text-bg-info">EQUIP</span>`;
+    } else {
+      typeBadge = r.isNarcotic ? `<span class="badge text-bg-warning">NARC</span>` : `<span class="badge text-bg-success">MED</span>`;
+    }
 
     let scheduleBadge = "";
     if (r.isNarcotic && r.category === "med"){

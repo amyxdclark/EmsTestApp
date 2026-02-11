@@ -32,12 +32,14 @@ const DEFAULT_CONFIG = {
         { id:"mc1-medbox", label:"MC1 Medication Box", category:"med" },
         { id:"mc1-narc",   label:"MC1 Narcotics", category:"med" },
         { id:"sr-mc1",     label:"Supply Room (MC1)", category:"sup" },
-        { id:"mc1-jump",   label:"MC1 Jump Kit", category:"sup" }
+        { id:"mc1-jump",   label:"MC1 Jump Kit", category:"sup" },
+        { id:"mc1-equip",  label:"MC1 Equipment Check", category:"equip" }
       ],
       scheduledChecks:[
         { idTemplate:"chk-mc1-medbox-{daily}", label:"Daily: MC1 Medication Box", cadence:"daily", locationId:"mc1-medbox", category:"med" },
         { idTemplate:"chk-mc1-jump-{daily}",   label:"Daily: MC1 Jump Kit", cadence:"daily", locationId:"mc1-jump", category:"sup" },
-        { idTemplate:"chk-sr-mc1-{monthly}",   label:"Monthly: Supply Room (MC1)", cadence:"monthly", locationId:"sr-mc1", category:"sup" }
+        { idTemplate:"chk-sr-mc1-{monthly}",   label:"Monthly: Supply Room (MC1)", cadence:"monthly", locationId:"sr-mc1", category:"sup" },
+        { idTemplate:"chk-mc1-equip-{daily}",  label:"Daily: MC1 Equipment", cadence:"daily", locationId:"mc1-equip", category:"equip" }
       ]
     },
     {
@@ -49,14 +51,18 @@ const DEFAULT_CONFIG = {
         { id:"u43-narc", label:"Unit 43 Narcotic Box", category:"med" },
         { id:"sr-lisbon", label:"Supply Room (Lisbon)", category:"sup" },
         { id:"u42-jump",  label:"Unit 42 Jump Kit", category:"sup" },
-        { id:"u42-cab",   label:"Unit 42 Cabinet", category:"sup" }
+        { id:"u42-cab",   label:"Unit 42 Cabinet", category:"sup" },
+        { id:"u42-equip", label:"Unit 42 Equipment", category:"equip" },
+        { id:"u43-equip", label:"Unit 43 Equipment", category:"equip" }
       ],
       scheduledChecks:[
         { idTemplate:"chk-u42-obo-{daily}", label:"Daily: Unit 42 Out of Box", cadence:"daily", locationId:"u42-obo", category:"med" },
         { idTemplate:"chk-u43-obo-{daily}", label:"Daily: Unit 43 Out of Box", cadence:"daily", locationId:"u43-obo", category:"med" },
         { idTemplate:"chk-u42-jump-{daily}", label:"Daily: Unit 42 Jump Kit", cadence:"daily", locationId:"u42-jump", category:"sup" },
         { idTemplate:"chk-u42-cab-{daily}",  label:"Daily: Unit 42 Cabinet", cadence:"daily", locationId:"u42-cab", category:"sup" },
-        { idTemplate:"chk-sr-lisbon-{monthly}", label:"Monthly: Supply Room (Lisbon)", cadence:"monthly", locationId:"sr-lisbon", category:"sup" }
+        { idTemplate:"chk-sr-lisbon-{monthly}", label:"Monthly: Supply Room (Lisbon)", cadence:"monthly", locationId:"sr-lisbon", category:"sup" },
+        { idTemplate:"chk-u42-equip-{daily}", label:"Daily: Unit 42 Equipment", cadence:"daily", locationId:"u42-equip", category:"equip" },
+        { idTemplate:"chk-u43-equip-{daily}", label:"Daily: Unit 43 Equipment", cadence:"daily", locationId:"u43-equip", category:"equip" }
       ]
     }
   ],

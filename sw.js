@@ -1,11 +1,21 @@
 /* sw.js - simple PWA cache for GitHub Pages */
-const CACHE_NAME = "medchecks-pwa-v1";
+const CACHE_NAME = "medchecks-pwa-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icon-192.png",
+  "./icon-512.png",
+  "./css/styles.css",
+  "./js/config.js",
+  "./js/storage.js",
+  "./js/ui.js",
+  "./js/narcotics.js",
+  "./js/checklist.js",
+  "./js/incident.js",
+  "./js/admin.js",
+  "./js/sysadmin.js",
+  "./js/app.js"
 ];
 
 self.addEventListener("install", (event) => {

@@ -32,7 +32,7 @@ function addLog(action, details, transactionId){
   logs.unshift(logEntry);
   setLogs(logs.slice(0, 250));
   renderLogs();
-  return logEntry.t; // Return timestamp as transaction ID if none provided
+  return transactionId || logEntry.t; // Return provided transactionId or timestamp as fallback
 }
 
 function generateTransactionId(){

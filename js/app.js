@@ -239,19 +239,11 @@ function openPartialDoseWasteScenario(cfg){
     return;
   }
 
-  const medNames = narcMeds.map(m => m.name).join("\\n");
-  const medName = prompt(`Select narcotic medication:\\n\\n${medNames}\\n\\nEnter medication name:`);
-  
-  if (!medName) return;
-  
-  const selectedMed = narcMeds.find(m => m.name.toLowerCase() === medName.toLowerCase());
-  if (!selectedMed){
-    toast("Invalid selection", "Medication not found in narcotic list.");
-    return;
-  }
-
-  openPartialWaste(selectedMed.name, selectedMed.defaultDose || "");
-  addLog("Scenario", "Partial Dose Waste - " + selectedMed.name);
+  // Use the existing picker UI instead of prompt for better UX
+  openPicker(cfg, "Select Narcotic for Partial Waste", "Choose medication for partial dose waste documentation", { forceType: "narc" }, (type, med) => {
+    openPartialWaste(med.name, med.defaultDose || "");
+    addLog("Scenario", "Partial Dose Waste - " + med.name);
+  });
 }
 
 $(function(){

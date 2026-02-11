@@ -288,14 +288,14 @@ function confirmPartialWaste(cfg){
   }
 
   // Parse numeric values (strip units like "mcg", "mg", "mL")
-  const parseNumeric = (str) => {
-    const match = str.match(/[\d.]+/);
+  const extractNumericValue = (str) => {
+    const match = str.match(/\d+(\.\d+)?/);
     return match ? parseFloat(match[0]) : NaN;
   };
 
-  const totalNum = parseNumeric(total);
-  const administeredNum = parseNumeric(administered);
-  const wastedNum = parseNumeric(wasted);
+  const totalNum = extractNumericValue(total);
+  const administeredNum = extractNumericValue(administered);
+  const wastedNum = extractNumericValue(wasted);
 
   // Validate that values are numeric
   if (isNaN(totalNum) || isNaN(administeredNum) || isNaN(wastedNum)){
@@ -382,7 +382,7 @@ function exportPartialWastePdf(provider, medication, total, administered, wasted
   doc.text("Witness Signature:", 14, y); y += 10;
   doc.text(`________________________ (${witnessUser})`, 14, y);
   
-  const fileName = `PartialWaste_${medication.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}_${Date.now()}.pdf`;
+  const fileName = `PartialWaste_${medication.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
   doc.save(fileName);
   
   addLog("Export PDF", `Partial Waste: ${fileName}`);

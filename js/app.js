@@ -137,8 +137,8 @@ function handleScenario(cfg, id){
 
   if (id === "checkoutMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Check Out Selected."); addLog("Scenario", "checkout meds"); return; }
   if (id === "wasteMeds"){ toast("Tip", "Open a checklist, mark items Done, then use Waste Selected."); addLog("Scenario", "waste meds"); return; }
-  if (id === "stockSupplies"){ addLog("Stock", "Prototype stock action"); toast("Stock (demo)", "Logged locally."); return; }
-  if (id === "transferItems"){ addLog("Transfer", "Prototype transfer action"); toast("Transfer (demo)", "Logged locally."); return; }
+  if (id === "stockSupplies"){ openStockSupplies(cfg); return; }
+  if (id === "transferItems"){ openTransferItems(cfg); return; }
   if (id === "reportDiscrepancy"){ handleReport(cfg, "reportDiscrepancy"); return; }
   if (id === "searchLogs"){ handleReport(cfg, "searchLogs"); return; }
   if (id === "narcShiftCount"){ openNarcShiftCount(cfg); return; }
@@ -176,8 +176,7 @@ function handleReport(cfg, id){
   }
 
   if (id === "expirationReport"){
-    toast("Expiration Report", "This feature displays items expiring within 30/60/90 days (prototype).");
-    addLog("Report", "Expiration Report");
+    generateExpirationReport(cfg);
     showView("reports");
     return;
   }
@@ -339,6 +338,22 @@ $(function(){
   $("#btnMarkInService").on("click", () => markTruckStatus("in-service"));
   $("#btnMarkOutOfService").on("click", () => markTruckStatus("out-of-service"));
 
+  $("#btnStockAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Stock", "Select an item", { forceType:null }, (type, item) => {
+      addStockItem(type, item);
+    });
+  });
+  $("#btnConfirmStock").on("click", () => confirmStockSupplies());
+
+  $("#btnTransferAddItem").on("click", () => {
+    const cfg = loadConfig();
+    openPicker(cfg, "Add Item to Transfer", "Select an item", { forceType:null }, (type, item) => {
+      addTransferItem(type, item);
+    });
+  });
+  $("#btnConfirmTransfer").on("click", () => confirmTransferItems());
+
   $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
   $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });
 
@@ -443,4 +458,381 @@ function boot(){
   enforceNavVisibility();
   renderAll(cfg);
   showView("home");
+}
+
+function generateExpirationReport(cfg){
+  const now = new Date();
+  const meds = getMaster(cfg, "meds");
+  const supplies = getMaster(cfg, "supplies");
+  const allItems = [...meds.map(m => ({...m, type:"med"})), ...supplies.map(s => ({...s, type:"sup"}))];
+  
+  const expired = [];
+  const within30 = [];
+  const within60 = [];
+  const within90 = [];
+  
+  allItems.forEach(item => {
+    if (!item.expirationDate) return;
+    const expDate = new Date(item.expirationDate);
+    const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+    
+    const entry = { name: item.name, type: item.type, expirationDate: item.expirationDate, daysUntil: diffDays };
+    
+    if (diffDays < 0) {
+      expired.push(entry);
+    } else if (diffDays <= 30) {
+      within30.push(entry);
+    } else if (diffDays <= 60) {
+      within60.push(entry);
+    } else if (diffDays <= 90) {
+      within90.push(entry);
+    }
+  });
+  
+  // Render the report
+  let html = `
+    <div class="panel-white mt-3">
+      <h5 class="mb-3" style="font-weight:950;">Expiration Report</h5>
+      <div class="small-note mb-3">Generated: ${now.toLocaleString()}</div>
+  `;
+  
+  if (expired.length > 0){
+    html += `
+      <div class="alert alert-danger">
+        <h6 style="font-weight:950;">⚠️ EXPIRED (${expired.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    expired.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - Expired ${Math.abs(e.daysUntil)} days ago (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within30.length > 0){
+    html += `
+      <div class="alert alert-warning">
+        <h6 style="font-weight:950;">⚠️ Expiring Within 30 Days (${within30.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within30.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within60.length > 0){
+    html += `
+      <div class="alert alert-info">
+        <h6 style="font-weight:950;">ℹ️ Expiring Within 60 Days (${within60.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within60.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (within90.length > 0){
+    html += `
+      <div class="alert alert-light border">
+        <h6 style="font-weight:950;">📅 Expiring Within 90 Days (${within90.length} items)</h6>
+        <ul class="mb-0">
+    `;
+    within90.forEach(e => {
+      html += `<li><b>${escapeHtml(e.name)}</b> (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  
+  if (expired.length === 0 && within30.length === 0 && within60.length === 0 && within90.length === 0){
+    html += `<div class="alert alert-success">✅ No items expiring within 90 days!</div>`;
+  }
+  
+  html += `
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary" type="button" id="btnExportExpirationPdf">Export as PDF</button>
+      </div>
+    </div>
+  `;
+  
+  $("#logExportBox").show().html(html);
+  
+  $("#btnExportExpirationPdf").off("click").on("click", () => {
+    exportExpirationReportPdf(expired, within30, within60, within90);
+  });
+  
+  addLog("Report", "Expiration Report");
+  toast("Expiration Report", "Report generated.");
+}
+
+function exportExpirationReportPdf(expired, within30, within60, within90){
+  if (typeof jsPDF === "undefined"){
+    toast("PDF Error", "jsPDF library not loaded.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  doc.setFontSize(18);
+  doc.text("Expiration Report", 14, 20);
+  
+  doc.setFontSize(11);
+  let y = 30;
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, y); y += 10;
+  
+  if (expired.length > 0){
+    doc.setFontSize(14);
+    doc.setTextColor(200, 0, 0);
+    doc.text(`EXPIRED (${expired.length} items)`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    expired.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - Exp: ${e.expirationDate}`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within30.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.setTextColor(200, 100, 0);
+    doc.text(`Expiring Within 30 Days (${within30.length} items)`, 14, y); y += 8;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    within30.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within60.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.text(`Expiring Within 60 Days (${within60.length} items)`, 14, y); y += 8;
+    doc.setFontSize(9);
+    within60.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+    y += 5;
+  }
+  
+  if (within90.length > 0){
+    if (y > 250){ doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.text(`Expiring Within 90 Days (${within90.length} items)`, 14, y); y += 8;
+    doc.setFontSize(9);
+    within90.slice(0, 40).forEach(e => {
+      if (y > 270){ doc.addPage(); y = 20; }
+      doc.text(`- ${e.name} (${e.type.toUpperCase()}) - ${e.daysUntil} days (${e.expirationDate})`, 16, y);
+      y += 5;
+    });
+  }
+  
+  const fileName = `ExpirationReport_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+  
+  addLog("Export PDF", `Expiration Report: ${fileName}`);
+  toast("PDF Exported", fileName);
+}
+
+// Stock Supplies Workflow
+let stockSuppliesData = null;
+
+function openStockSupplies(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  const svc = getService(cfg, s.service);
+  if (!svc){ toast("Service Error", "Service not found."); return; }
+  
+  stockSuppliesData = {
+    destination: "",
+    items: [],
+    receivedBy: s.display || s.user,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Populate location dropdown
+  const locSelect = $("#stockDestination");
+  locSelect.empty();
+  (svc.locations || []).forEach(loc => {
+    locSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+  });
+  
+  $("#stockReceivedBy").val(stockSuppliesData.receivedBy);
+  renderStockItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("stockModal")).show();
+  addLog("Open Stock Supplies", s.service);
+}
+
+function renderStockItems(cfg){
+  const tbody = $("#stockBody");
+  tbody.empty();
+  
+  stockSuppliesData.items.forEach((item, idx) => {
+    tbody.append(`
+      <tr>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td><span class="badge text-bg-${item.type === 'sup' ? 'danger' : 'success'}">${item.type.toUpperCase()}</span></td>
+        <td><input type="number" class="form-control form-control-sm stock-qty" data-idx="${idx}" value="${item.quantity}" min="0" /></td>
+        <td><button class="btn btn-sm btn-outline-danger" data-del="${idx}">Remove</button></td>
+      </tr>
+    `);
+  });
+  
+  tbody.find(".stock-qty").on("input", function(){
+    const idx = +$(this).data("idx");
+    stockSuppliesData.items[idx].quantity = parseInt($(this).val() || "0");
+  });
+  
+  tbody.find("button[data-del]").on("click", function(){
+    const idx = +$(this).data("del");
+    stockSuppliesData.items.splice(idx, 1);
+    renderStockItems(cfg);
+  });
+}
+
+function addStockItem(type, item){
+  stockSuppliesData.items.push({
+    name: item.name,
+    type: type === "sup" ? "sup" : "med",
+    quantity: 1
+  });
+  renderStockItems(loadConfig());
+}
+
+function confirmStockSupplies(){
+  const cfg = loadConfig();
+  const destination = $("#stockDestination").val();
+  const receivedBy = $("#stockReceivedBy").val().trim();
+  
+  if (!destination){
+    toast("Missing Location", "Please select a destination location.");
+    return;
+  }
+  
+  if (stockSuppliesData.items.length === 0){
+    toast("No Items", "Please add at least one item to stock.");
+    return;
+  }
+  
+  stockSuppliesData.destination = destination;
+  stockSuppliesData.receivedBy = receivedBy;
+  
+  const logDetail = `Destination: ${destination}, Received by: ${receivedBy}, Items: ${JSON.stringify(stockSuppliesData.items)}`;
+  addLog("Stock Supplies", logDetail);
+  toast("Stock Complete", `${stockSuppliesData.items.length} items restocked at ${destination}.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("stockModal")).hide();
+}
+
+// Transfer Items Workflow
+let transferItemsData = null;
+
+function openTransferItems(cfg){
+  const s = getSession();
+  if (!s){ toast("Login required", "Please login first."); return; }
+  
+  const svc = getService(cfg, s.service);
+  if (!svc){ toast("Service Error", "Service not found."); return; }
+  
+  transferItemsData = {
+    source: "",
+    destination: "",
+    items: [],
+    transferredBy: s.display || s.user,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Populate location dropdowns
+  const srcSelect = $("#transferSource");
+  const dstSelect = $("#transferDest");
+  srcSelect.empty();
+  dstSelect.empty();
+  (svc.locations || []).forEach(loc => {
+    srcSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+    dstSelect.append(`<option value="${escapeAttr(loc.id)}">${escapeHtml(loc.label)}</option>`);
+  });
+  
+  $("#transferBy").val(transferItemsData.transferredBy);
+  renderTransferItems(cfg);
+  
+  new bootstrap.Modal(document.getElementById("transferModal")).show();
+  addLog("Open Transfer Items", s.service);
+}
+
+function renderTransferItems(cfg){
+  const tbody = $("#transferBody");
+  tbody.empty();
+  
+  transferItemsData.items.forEach((item, idx) => {
+    tbody.append(`
+      <tr>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td><span class="badge text-bg-${item.type === 'sup' ? 'danger' : 'success'}">${item.type.toUpperCase()}</span></td>
+        <td><input type="number" class="form-control form-control-sm transfer-qty" data-idx="${idx}" value="${item.quantity}" min="0" /></td>
+        <td><button class="btn btn-sm btn-outline-danger" data-del="${idx}">Remove</button></td>
+      </tr>
+    `);
+  });
+  
+  tbody.find(".transfer-qty").on("input", function(){
+    const idx = +$(this).data("idx");
+    transferItemsData.items[idx].quantity = parseInt($(this).val() || "0");
+  });
+  
+  tbody.find("button[data-del]").on("click", function(){
+    const idx = +$(this).data("del");
+    transferItemsData.items.splice(idx, 1);
+    renderTransferItems(cfg);
+  });
+}
+
+function addTransferItem(type, item){
+  transferItemsData.items.push({
+    name: item.name,
+    type: type === "sup" ? "sup" : "med",
+    quantity: 1
+  });
+  renderTransferItems(loadConfig());
+}
+
+function confirmTransferItems(){
+  const cfg = loadConfig();
+  const source = $("#transferSource").val();
+  const destination = $("#transferDest").val();
+  const transferredBy = $("#transferBy").val().trim();
+  
+  if (!source || !destination){
+    toast("Missing Location", "Please select both source and destination locations.");
+    return;
+  }
+  
+  if (source === destination){
+    toast("Same Location", "Source and destination must be different.");
+    return;
+  }
+  
+  if (transferItemsData.items.length === 0){
+    toast("No Items", "Please add at least one item to transfer.");
+    return;
+  }
+  
+  transferItemsData.source = source;
+  transferItemsData.destination = destination;
+  transferItemsData.transferredBy = transferredBy;
+  
+  const logDetail = `From: ${source}, To: ${destination}, By: ${transferredBy}, Items: ${JSON.stringify(transferItemsData.items)}`;
+  addLog("Transfer Items", logDetail);
+  toast("Transfer Complete", `${transferItemsData.items.length} items transferred from ${source} to ${destination}.`);
+  
+  bootstrap.Modal.getInstance(document.getElementById("transferModal")).hide();
 }

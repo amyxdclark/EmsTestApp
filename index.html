@@ -855,6 +855,122 @@
     </div>
   </div>
 
+  <!-- STOCK SUPPLIES MODAL -->
+  <div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Stock Supplies</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Receive and stock supplies at a location.</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Destination Location <span class="text-danger">*</span></label>
+              <select class="form-select" id="stockDestination"></select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Received By</label>
+              <input class="form-control" id="stockReceivedBy" readonly />
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <button class="btn btn-outline-secondary" type="button" id="btnStockAddItem">Add Item</button>
+          </div>
+
+          <h6 style="font-weight:950;">Items to Stock</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-lite">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style="width:120px;">Type</th>
+                  <th style="width:150px;">Quantity</th>
+                  <th style="width:120px;"></th>
+                </tr>
+              </thead>
+              <tbody id="stockBody"></tbody>
+            </table>
+          </div>
+
+          <div class="small-note mt-2">
+            Add items using the "Add Item" button above. Enter quantities received.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" type="button" id="btnConfirmStock">Confirm Stock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSFER ITEMS MODAL -->
+  <div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Transfer Items</h5>
+            <div class="small-note" style="color: rgba(255,255,255,.75) !important;">Transfer items between locations.</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-bold">From Location <span class="text-danger">*</span></label>
+              <select class="form-select" id="transferSource"></select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-bold">To Location <span class="text-danger">*</span></label>
+              <select class="form-select" id="transferDest"></select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-bold">Transferred By</label>
+              <input class="form-control" id="transferBy" readonly />
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <button class="btn btn-outline-secondary" type="button" id="btnTransferAddItem">Add Item</button>
+          </div>
+
+          <h6 style="font-weight:950;">Items to Transfer</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-lite">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style="width:120px;">Type</th>
+                  <th style="width:150px;">Quantity</th>
+                  <th style="width:120px;"></th>
+                </tr>
+              </thead>
+              <tbody id="transferBody"></tbody>
+            </table>
+          </div>
+
+          <div class="small-note mt-2">
+            Add items using the "Add Item" button above. Enter quantities to transfer.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" type="button" id="btnConfirmTransfer">Confirm Transfer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div class="toast-host" id="toastHost"></div>
 

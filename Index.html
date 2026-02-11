@@ -1,0 +1,2745 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MedChecks / SupplyChecks</title>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0a3431">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <style>
+    :root{
+      /* Default = MedChecks (dark seafoam) */
+      --app-0:#061f1e;
+      --app-1:#0a3431;
+      --app-2:#0e4743;
+      --app-3:#138e83; /* accent */
+      --tile-ink:#061f1e;
+
+      --white:#fff;
+      --white-92: rgba(255,255,255,.92);
+      --white-75: rgba(255,255,255,.75);
+      --card-bg: rgba(255,255,255,.08);
+      --card-border: rgba(255,255,255,.45);
+      --shadow: 0 14px 38px rgba(0,0,0,.34);
+      --r-lg: 18px;
+      --r-md: 14px;
+    }
+
+    body[data-mode="supply"]{
+      /* SupplyChecks (dark red) */
+      --app-0:#24070a;
+      --app-1:#3a0b10;
+      --app-2:#541018;
+      --app-3:#c43a4a;
+      --tile-ink:#24070a;
+    }
+
+    body{
+      min-height:100vh;
+      color: var(--white);
+      background:
+        radial-gradient(1200px 650px at 18% 10%, color-mix(in srgb, var(--app-3) 22%, transparent), transparent 55%),
+        radial-gradient(900px 600px at 88% 25%, rgba(255,255,255,.08), transparent 55%),
+        linear-gradient(135deg, var(--app-0), var(--app-1) 35%, var(--app-2) 70%, #041312);
+    }
+
+    .navbar{
+      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,.22) !important;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+    .navbar-brand{ font-weight: 900; letter-spacing: .35px; color: var(--white) !important; }
+    .nav-link{ color: rgba(255,255,255,.9) !important; font-weight: 800; }
+    .nav-link:hover{ color: var(--white) !important; text-decoration: underline; text-underline-offset: 6px; }
+
+    .section-card{
+      border: 1px solid var(--card-border);
+      border-radius: var(--r-lg);
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .section-header{
+      background: rgba(255,255,255,.95);
+      color: var(--tile-ink);
+      padding: 14px 18px;
+      font-weight: 900;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .section-header small{ font-weight: 850; color: rgba(0,0,0,.55); }
+    .section-body{ padding: 16px; }
+
+    .tile-btn{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,0);
+      background: rgba(255,255,255,.98);
+      color: var(--tile-ink);
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding: 10px;
+      font-weight: 900;
+      line-height: 1.15;
+      box-shadow: 0 10px 22px rgba(0,0,0,.28);
+      transition: transform .08s ease, box-shadow .15s ease;
+      user-select:none;
+      position: relative;
+      overflow:hidden;
+    }
+    .tile-btn .sub{
+      margin-top: 8px;
+      font-weight: 850;
+      font-size: .85rem;
+      color: rgba(0,0,0,.55);
+    }
+    .tile-btn:hover{ transform: translateY(-2px); box-shadow: 0 16px 30px rgba(0,0,0,.38); cursor: pointer; }
+    .tile-btn:active{ transform: translateY(0) scale(.99); }
+    .tile-btn.is-selected{
+      border: 2px solid color-mix(in srgb, var(--app-3) 78%, transparent);
+      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,.94));
+    }
+    .tile-btn.is-selected::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(520px 230px at 50% -20%, color-mix(in srgb, var(--app-3) 18%, transparent), transparent 60%);
+      pointer-events:none;
+    }
+
+    .status-pill{
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .status-pill .badge{
+      background: rgba(255,255,255,.16) !important;
+      border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.92) !important;
+      font-weight: 900;
+    }
+
+    .mode-pill{
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.92);
+      font-weight: 950;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .mode-pill select{
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      color: rgba(255,255,255,.92);
+      font-weight: 950;
+      border-radius: 999px;
+      padding: 6px 10px;
+      outline: none;
+    }
+    .mode-pill option{ color: #111; }
+
+    .g-tight{ --bs-gutter-x: .85rem; --bs-gutter-y: .85rem; }
+
+    .btn-app{
+      background: linear-gradient(135deg, var(--app-2), var(--app-3));
+      color:#fff;
+      border:0;
+      font-weight: 950;
+    }
+    .btn-app:hover{ filter: brightness(1.06); color:#fff; }
+    .btn-outline-app{
+      border: 2px solid color-mix(in srgb, var(--app-3) 52%, transparent);
+      color: var(--tile-ink);
+      font-weight: 950;
+      background:#fff;
+    }
+    .btn-outline-app:hover{
+      background: color-mix(in srgb, var(--app-3) 10%, #fff);
+      border-color: color-mix(in srgb, var(--app-3) 78%, transparent);
+      color: var(--tile-ink);
+    }
+
+    .modal-content{ border-radius: 18px; border: 1px solid color-mix(in srgb, var(--app-3) 22%, transparent); overflow:hidden; }
+    .modal-header{
+      background: linear-gradient(135deg, var(--app-1), var(--app-2));
+      color:#fff;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+    .modal-body{ background: rgba(255,255,255,.985); }
+
+    /* Login overlay */
+    #loginOverlay{
+      position: fixed; inset: 0; z-index: 2000;
+      display:flex; align-items:center; justify-content:center;
+      padding: 18px;
+      background:
+        radial-gradient(900px 520px at 20% 10%, color-mix(in srgb, var(--app-3) 20%, transparent), transparent 55%),
+        radial-gradient(900px 520px at 80% 25%, rgba(255,255,255,.08), transparent 55%),
+        linear-gradient(135deg, var(--app-0), var(--app-1) 35%, var(--app-2) 75%, #041312);
+    }
+    .login-card{
+      width:100%; max-width: 640px;
+      border: 1px solid rgba(255,255,255,.30);
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .login-card .head{
+      background: rgba(255,255,255,.95);
+      color: var(--tile-ink);
+      padding: 14px 16px;
+      font-weight: 950;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .login-card .body{ padding: 16px; }
+    .login-card label{ font-weight: 900; color: rgba(255,255,255,.9); }
+    .login-card .form-control{ font-weight: 850; border-radius: 12px; }
+    .mini-note{ color: rgba(255,255,255,.78); font-weight: 800; font-size: .92rem; }
+
+    /* Checklist */
+    .check-item{
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.98);
+      display:flex;
+      align-items:flex-start;
+      gap: 10px;
+    }
+    .check-item .meta{ line-height: 1.2; }
+    .check-item .meta .name{ font-weight: 900; color: #111; }
+    .check-item .meta .desc{
+      font-weight: 800;
+      color: rgba(0,0,0,.55);
+      font-size: .9rem;
+      margin-top: 2px;
+    }
+
+    .warn{
+      border:1px solid rgba(0,0,0,.08);
+      background: rgba(255,245,230,.9);
+      color:#6a3b00;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 850;
+    }
+    .footer-hint{ color: var(--white-75); font-weight: 850; }
+
+    /* Admin tables */
+    .admin-card{
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,.98);
+      padding: 12px;
+    }
+    .admin-card .title{
+      font-weight: 950;
+      color: #111;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .admin-card .hint{
+      font-weight: 800;
+      color: rgba(0,0,0,.55);
+      font-size: .9rem;
+      margin-bottom: 8px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.05);
+      border: 1px solid rgba(0,0,0,.08);
+      font-weight: 900;
+      color:#111;
+    }
+    .chip button{
+      border:0;
+      background: rgba(0,0,0,.08);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 950;
+    }
+    .chip button:hover{ filter: brightness(.95); }
+
+    /* Help content */
+    .help-toc a{
+      display:block;
+      padding: 8px 10px;
+      border-radius: 12px;
+      text-decoration:none;
+      font-weight: 900;
+      color: #111;
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.08);
+      margin-bottom: 8px;
+    }
+    .help-toc a:hover{ background: rgba(0,0,0,.06); }
+    .help-block{
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,.98);
+      padding: 14px;
+    }
+    .help-block h5{
+      font-weight: 950;
+      color:#111;
+      margin-bottom: 8px;
+    }
+    .help-block p, .help-block li{
+      color: rgba(0,0,0,.78);
+      font-weight: 650;
+    }
+    .help-kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-weight: 900;
+      padding: 2px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,.15);
+      background: rgba(0,0,0,.04);
+      color:#111;
+      white-space: nowrap;
+    }
+    .help-callout{
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(19, 142, 131, .08);
+      color: #0a3431;
+      font-weight: 750;
+    }
+    body[data-mode="supply"] .help-callout{
+      background: rgba(196, 58, 74, .08);
+      color: #3a0b10;
+    }
+
+    /* Incident builder */
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.05);
+      border: 1px solid rgba(0,0,0,.08);
+      color:#111;
+      font-weight: 900;
+    }
+    .pill .x{
+      border:0;
+      background: rgba(0,0,0,.08);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 950;
+    }
+    .pill .x:hover{ filter: brightness(.95); }
+    .form-label.fw-bold{ font-weight: 950 !important; }
+  </style>
+</head>
+<script>
+  // Register Service Worker (PWA)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        console.log("Service worker registered.");
+      } catch (e) {
+        console.warn("Service worker registration failed:", e);
+      }
+    });
+  }
+</script>
+
+
+<body data-mode="med">
+  <!-- LOGIN OVERLAY -->
+  <div id="loginOverlay">
+    <div class="login-card">
+      <div class="head">
+        <div id="loginTitle">MedChecks</div>
+        <small class="mini-note">Concept Login (admin/admin) or (user/user)</small>
+      </div>
+      <div class="body">
+        <div class="mb-2 mini-note">
+          Pick a company, choose mode, then click <b>Login</b>.
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Company</label>
+            <select id="loginCompany" class="form-select fw-bold" style="border-radius:12px;">
+              <option value="MC1" selected>MC1</option>
+              <option value="Lisbon">Lisbon</option>
+            </select>
+            <div class="mini-note mt-1">Company changes available locations + check rules (demo-ready).</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Mode</label>
+            <select id="loginMode" class="form-select fw-bold" style="border-radius:12px;">
+              <option value="med" selected>MedChecks</option>
+              <option value="supply">SupplyChecks</option>
+            </select>
+            <div class="mini-note mt-1">Mode changes colors + master list (meds vs supplies).</div>
+          </div>
+
+          <div class="col-12 col-md-6 mt-2">
+            <label class="form-label">Username</label>
+            <input id="loginUser" class="form-control" value="admin" autocomplete="off">
+          </div>
+          <div class="col-12 col-md-6 mt-2">
+            <label class="form-label">Password</label>
+            <input id="loginPass" class="form-control" value="admin" type="password" autocomplete="off">
+          </div>
+
+          <div class="col-12 d-grid mt-2">
+            <button id="btnLogin" class="btn btn-app py-2">Login</button>
+          </div>
+
+          <div class="col-12 mt-2">
+            <div class="mini-note">
+              Demo persists in <b>sessionStorage</b> (clears when tab closes).
+              Admin sees the <b>Admin</b> area and can manage master lists.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="#top" id="brandTitle">MedChecks</a>
+
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <span class="navbar-toggler-icon" style="filter: invert(1); opacity:.95;"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2 align-items-lg-center">
+          <li class="nav-item">
+            <span class="nav-link" style="text-decoration:none; cursor:default;">
+              <span class="badge rounded-pill" id="navCompanyBadge" style="background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.18);">Company: -</span>
+            </span>
+          </li>
+
+          <li class="nav-item mt-2 mt-lg-0">
+            <div class="mode-pill">
+              <span>Mode</span>
+              <select id="modeSelect">
+                <option value="med" selected>MedChecks</option>
+                <option value="supply">SupplyChecks</option>
+              </select>
+            </div>
+          </li>
+
+          <li class="nav-item"><a class="nav-link" href="#intent">I want to…</a></li>
+          <li class="nav-item"><a class="nav-link" href="#checks">Checks</a></li>
+          <li class="nav-item"><a class="nav-link" href="#inventory">Locations</a></li>
+          <li class="nav-item"><a class="nav-link" href="#reports">Reports</a></li>
+          <li class="nav-item"><a class="nav-link" href="#help">Help</a></li>
+          <li class="nav-item d-none" id="navAdminItem"><a class="nav-link" href="#admin">Admin</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="btnLogout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="container py-4" id="top">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div>
+        <h1 class="mb-1 fw-bold" id="pageTitle">MedChecks</h1>
+        <div class="footer-hint" id="pageSubtitle">
+          Tap a location → open its checklist • scan/enter codes • mark items done
+        </div>
+      </div>
+
+      <div class="status-pill">
+        <span>User:</span><span id="whoAmI" class="badge rounded-pill">-</span>
+        <span>Role:</span><span id="whoRole" class="badge rounded-pill">-</span>
+        <span>Selected:</span><span id="statusText" class="badge rounded-pill">None</span>
+        <span>Due:</span><span id="countDue" class="badge rounded-pill">0</span>
+        <span>Activity:</span><span id="countActivity" class="badge rounded-pill">0</span>
+      </div>
+    </div>
+
+    <!-- I want to... -->
+    <section id="intent" class="section-card mb-4">
+      <div class="section-header">
+        <div>I want to…</div>
+        <small>Quick scenarios (open the actual checklist / tools)</small>
+      </div>
+      <div class="section-body">
+        <div class="row g-tight">
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="checksToday">Perform today’s checks<div class="sub">Open due list</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="scan">Scan a QR code<div class="sub">Open scanner screen</div></button></div>
+
+          <!-- NEW: Incident -->
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="incident">Create an incident<div class="sub">Select used items + PDF</div></button></div>
+
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="supplyRoom">Check Supply Room<div class="sub">Checklist</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="unit42oob">Check Unit 42 Out-of-Box<div class="sub">Checklist</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="unit43oob">Check Unit 43 Out-of-Box<div class="sub">Checklist</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="mc1medbox">Check Medication Box<div class="sub">Checklist</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="snapshot">View master list snapshot<div class="sub">Report</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="history">View history<div class="sub">Report</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-intent" data-intent="discrepancy">Report discrepancy<div class="sub">Ticket</div></button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Checks Overview -->
+    <section id="checks" class="section-card mb-4">
+      <div class="section-header">
+        <div>Checks</div>
+        <small>Tap a due item to open its checklist</small>
+      </div>
+      <div class="section-body">
+        <div class="d-flex flex-column flex-lg-row gap-2 align-items-lg-center justify-content-between">
+          <div class="footer-hint">
+            Rules (demo): Units daily • Out-of-Box daily • Supply Room monthly
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-app" id="btnOpenDue">Open Due List</button>
+            <button class="btn btn-outline-app" id="btnOpenIncident">Create Incident</button>
+            <button class="btn btn-outline-app" id="btnSeed">Seed Examples</button>
+            <button class="btn btn-outline-app" id="btnSwitchCompany">Switch Company</button>
+            <button class="btn btn-outline-app" id="btnClearAll">Clear ALL Data</button>
+          </div>
+        </div>
+
+        <hr class="border-light opacity-25">
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:120px;">Type</th>
+                <th>Location</th>
+                <th style="width:140px;">Status</th>
+                <th style="width:160px;"></th>
+              </tr>
+            </thead>
+            <tbody id="dueTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Locations -->
+    <section id="inventory" class="section-card mb-4">
+      <div class="section-header">
+        <div>Locations</div>
+        <small>Open checklist per location (company-scoped)</small>
+      </div>
+      <div class="section-body">
+        <div class="row g-tight" id="locationTiles"></div>
+      </div>
+    </section>
+
+    <!-- Reports -->
+    <section id="reports" class="section-card mb-4">
+      <div class="section-header">
+        <div>Reports</div>
+        <small>History / Snapshot / Discrepancies</small>
+      </div>
+      <div class="section-body">
+        <div class="row g-tight">
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-report" data-report="History">History<div class="sub">Timeline</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-report" data-report="Snapshot">Snapshot<div class="sub">Master lists</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-report" data-report="Discrepancies">Discrepancies<div class="sub">Tickets</div></button></div>
+          <div class="col-6 col-md-4 col-lg-3"><button class="tile-btn js-report" data-report="Search">Search Logs<div class="sub">Filter</div></button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HELP -->
+    <section id="help" class="section-card mb-4">
+      <div class="section-header">
+        <div>Help & Documentation</div>
+        <small>Everything in this demo (single-file concept app)</small>
+      </div>
+      <div class="section-body">
+        <div class="row g-3">
+          <div class="col-lg-4">
+            <div class="help-block">
+              <h5>Table of Contents</h5>
+              <div class="help-toc">
+                <a href="#help-overview">1) Overview</a>
+                <a href="#help-quickstart">2) Quick Start</a>
+                <a href="#help-incident">3) Incident Builder + PDF</a>
+                <a href="#help-modes">4) MedChecks vs SupplyChecks</a>
+                <a href="#help-company">5) Companies & Locations</a>
+                <a href="#help-checks">6) Daily / Monthly Checks</a>
+                <a href="#help-checklist">7) Checklists & Completing</a>
+                <a href="#help-scan">8) QR / Barcode Scanning</a>
+                <a href="#help-reports">9) Reports & Logs</a>
+                <a href="#help-discrepancy">10) Reporting Discrepancies</a>
+                <a href="#help-admin">11) Admin Area (Master Lists)</a>
+                <a href="#help-storage">12) Data Storage & Reset</a>
+                <a href="#help-troubleshoot">13) Troubleshooting</a>
+                <a href="#help-roadmap">14) Roadmap Ideas</a>
+              </div>
+
+              <div class="help-callout mt-2">
+                Tip: Build an incident → add items → click <span class="help-kbd">Generate PDF</span> → attach to your run report later.
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-8">
+            <div class="help-block" id="help-overview">
+              <h5>1) Overview</h5>
+              <p>
+                Single-page concept UI for EMS inventory/readiness workflows with two themed modes:
+                <b>MedChecks</b> (medications) and <b>SupplyChecks</b> (supplies),
+                plus company switching, checklist-based daily/monthly checks, QR scanning, and an incident builder.
+              </p>
+            </div>
+
+            <div class="help-block mt-3" id="help-quickstart">
+              <h5>2) Quick Start</h5>
+              <ol>
+                <li>Login as <span class="help-kbd">admin/admin</span> or <span class="help-kbd">user/user</span>.</li>
+                <li>Do checks from <span class="help-kbd">Checks → Open Due List</span>.</li>
+                <li>Create an incident via <span class="help-kbd">I want to… → Create an incident</span>.</li>
+                <li>Generate a PDF and attach to your run report later.</li>
+              </ol>
+            </div>
+
+            <div class="help-block mt-3" id="help-incident">
+              <h5>3) Incident Builder + PDF</h5>
+              <ul>
+                <li>Create an incident number, optional unit/location, and notes.</li>
+                <li>Add items used during the call (meds or supplies depending on mode).</li>
+                <li>Each item can include dose/qty, route, time, and free-text notes.</li>
+                <li>Click <span class="help-kbd">Generate PDF</span> to download a simple incident summary PDF.</li>
+              </ul>
+              <div class="help-callout">
+                PDFs are created client-side with jsPDF (CDN). If your network blocks CDNs, you can still build the incident and copy the summary text.
+              </div>
+            </div>
+
+            <div class="help-block mt-3" id="help-modes">
+              <h5>4) MedChecks vs SupplyChecks</h5>
+              <ul>
+                <li><b>MedChecks:</b> uses the meds master list.</li>
+                <li><b>SupplyChecks:</b> uses the supplies master list.</li>
+              </ul>
+            </div>
+
+            <div class="help-block mt-3" id="help-company">
+              <h5>5) Companies & Locations</h5>
+              <p>Company scopes locations and check completion state in sessionStorage.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-checks">
+              <h5>6) Daily / Monthly Checks</h5>
+              <p>Daily resets each day; Supply Room is treated as monthly in this demo.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-checklist">
+              <h5>7) Checklists & Completing</h5>
+              <p>Open a location to perform a checklist. Completion is tracked per day/month.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-scan">
+              <h5>8) QR / Barcode Scanning</h5>
+              <p>Uses html5-qrcode. Requires https/localhost and camera permission.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-reports">
+              <h5>9) Reports & Logs</h5>
+              <p>History, snapshot, discrepancies, and search are included.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-discrepancy">
+              <h5>10) Reporting Discrepancies</h5>
+              <p>Tickets stored locally in sessionStorage.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-admin">
+              <h5>11) Admin Area (Master Lists)</h5>
+              <p>Admin can manage companies, locations, and master lists (meds/supplies).</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-storage">
+              <h5>12) Data Storage & Reset</h5>
+              <p>Uses sessionStorage; clears when tab closes. Clear ALL Data resets everything.</p>
+            </div>
+
+            <div class="help-block mt-3" id="help-troubleshoot">
+              <h5>13) Troubleshooting</h5>
+              <ul>
+                <li>Scanner/PDF CDN blocked → use manual entry / copy summary.</li>
+                <li>Camera needs https/localhost.</li>
+              </ul>
+            </div>
+
+            <div class="help-block mt-3" id="help-roadmap">
+              <h5>14) Roadmap Ideas</h5>
+              <ul>
+                <li>Persist incidents/checks to a real backend.</li>
+                <li>Witness workflows, narc reconciliation, audit signatures.</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" class="section-card mb-4 d-none">
+      <div class="section-header">
+        <div>Admin</div>
+        <small>Manage master lists (company + mode scoped)</small>
+      </div>
+      <div class="section-body">
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <div class="admin-card">
+              <div class="title">
+                <span>Companies</span>
+                <span class="chip">Current: <span id="adminCompanyNow">-</span></span>
+              </div>
+              <div class="hint">In this demo, company affects available locations + stored data namespace.</div>
+
+              <div class="d-flex gap-2 flex-wrap mb-2" id="adminCompanyChips"></div>
+
+              <div class="row g-2">
+                <div class="col-8"><input class="form-control" id="adminCompanyAdd" placeholder="Add company (e.g., Brunswick)"></div>
+                <div class="col-4 d-grid"><button class="btn btn-app" id="btnAddCompany">Add</button></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="admin-card">
+              <div class="title">
+                <span>Locations</span>
+                <span class="chip">Company: <span id="adminLocCompany">-</span></span>
+              </div>
+              <div class="hint">Locations are per company. Tap a location on the main screen to open its checklist.</div>
+
+              <div class="d-flex gap-2 flex-wrap mb-2" id="adminLocationChips"></div>
+
+              <div class="row g-2">
+                <div class="col-8"><input class="form-control" id="adminLocationAdd" placeholder="Add location (e.g., Unit 41 Out of Box)"></div>
+                <div class="col-4 d-grid"><button class="btn btn-app" id="btnAddLocation">Add</button></div>
+              </div>
+              <div class="text-muted small mt-2">
+                Note: Supply Room is treated as Monthly in demo rules; all other locations are Daily.
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="admin-card">
+              <div class="title">
+                <span>Master List (Meds)</span>
+                <span class="chip">Used by: MedChecks</span>
+              </div>
+              <div class="hint">This list drives the checklist template in MedChecks. Add/remove items here.</div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-8"><input class="form-control" id="adminMedAdd" placeholder="Add med (e.g., Ketamine)"></div>
+                <div class="col-4 d-grid"><button class="btn btn-app" id="btnAddMed">Add</button></div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap" id="adminMedChips"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="admin-card">
+              <div class="title">
+                <span>Master List (Supplies)</span>
+                <span class="chip">Used by: SupplyChecks</span>
+              </div>
+              <div class="hint">This list drives the checklist template in SupplyChecks.</div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-8"><input class="form-control" id="adminSupAdd" placeholder="Add supply (e.g., 4x4 gauze)"></div>
+                <div class="col-4 d-grid"><button class="btn btn-app" id="btnAddSup">Add</button></div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap" id="adminSupChips"></div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="admin-card">
+              <div class="title">
+                <span>Admin Tools</span>
+              </div>
+              <div class="hint">These affect the stored demo data in sessionStorage.</div>
+
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-app" id="btnAdminExport">Export JSON</button>
+                <button class="btn btn-outline-app" id="btnAdminImport">Import JSON</button>
+                <button class="btn btn-outline-app" id="btnAdminResetMasters">Reset Master Lists to Defaults</button>
+              </div>
+
+              <div class="mt-2 d-none" id="importWrap">
+                <label class="form-label fw-bold">Paste JSON</label>
+                <textarea class="form-control" rows="6" id="importBox" placeholder="Paste exported JSON here..."></textarea>
+                <div class="d-grid mt-2">
+                  <button class="btn btn-app" id="btnDoImport">Apply Import</button>
+                </div>
+              </div>
+
+              <div class="text-muted small mt-2">
+                Export/Import helps you keep lists while iterating on this concept. (Still single-file.)
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="text-center pb-2 footer-hint">
+      Tip: Switch mode from navbar. Switch company from Checks.
+      <div class="mt-2">© <span id="year"></span></div>
+    </div>
+  </main>
+
+  <!-- CHECKLIST MODAL -->
+  <div class="modal fade" id="checklistModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="fw-bold" style="font-size:1.1rem;">Checklist</div>
+            <div class="small" id="checklistSubtitle" style="opacity:.9;"></div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-lg-5">
+              <div class="fw-bold text-dark mb-1">Company</div>
+              <div class="text-muted" id="checklistCompany"></div>
+
+              <div class="fw-bold text-dark mt-3 mb-1">Location</div>
+              <div class="text-muted" id="checklistLocation"></div>
+
+              <hr class="my-3">
+
+              <div class="fw-bold text-dark mb-2">Scan / Enter Code</div>
+              <div class="d-flex gap-2">
+                <input id="codeBox" class="form-control" placeholder="Scan/enter code…" />
+                <button class="btn btn-app" id="btnCodeAdd" type="button">Add</button>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-2" id="exampleButtons"></div>
+
+              <div class="warn mt-3 d-none" id="qrWarn">
+                QR scanner library isn’t loaded. Fallback:
+                <div class="mt-1">• Use the “Enter Code” box</div>
+                <div>• Make sure you run on https/localhost and your network allows the unpkg CDN</div>
+              </div>
+
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-app" id="btnStartScan" type="button">Start Camera Scanner</button>
+                <button class="btn btn-outline-app" id="btnStopScan" type="button">Stop Scanner</button>
+              </div>
+
+              <div class="text-muted small mt-2">
+                Camera scan usually requires <b>https</b> or <b>localhost</b>.
+              </div>
+
+              <hr class="my-3">
+
+              <div class="d-grid gap-2">
+                <button class="btn btn-outline-app" id="btnCompleteChecklist">Complete Checklist</button>
+                <button class="btn btn-outline-app" id="btnResetChecklist">Reset Checklist (this period)</button>
+              </div>
+
+              <div class="text-muted small mt-2" id="periodHint"></div>
+            </div>
+
+            <div class="col-lg-7">
+              <div class="fw-bold text-dark mb-2">Items to Verify</div>
+              <div class="row g-2" id="checkItemsWrap"></div>
+
+              <hr class="my-3">
+
+              <div class="fw-bold text-dark mb-2">Live Scanner</div>
+              <div id="qrReader"></div>
+
+              <div class="text-muted small mt-2">
+                When a QR is read, it auto-fills the code box. Tap “Add” to log it.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INCIDENT MODAL -->
+  <div class="modal fade" id="incidentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="fw-bold" style="font-size:1.1rem;">Incident Builder</div>
+            <div class="small" id="incidentSubtitle" style="opacity:.9;">Select used items and generate a PDF for your run report</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-lg-5">
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label fw-bold">Incident Number</label>
+                  <input class="form-control" id="incNumber" placeholder="e.g., 26-004321 or CAD #" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold">Date</label>
+                  <input class="form-control" id="incDate" type="date" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold">Time (optional)</label>
+                  <input class="form-control" id="incTime" type="time" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Unit / Crew / Location (optional)</label>
+                  <input class="form-control" id="incUnit" placeholder="e.g., Unit 42 / MC1 / Medic 1" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Notes (optional)</label>
+                  <textarea class="form-control" id="incNotes" rows="3" placeholder="Short narrative notes for the attachment..."></textarea>
+                </div>
+              </div>
+
+              <hr class="my-3">
+
+              <div class="fw-bold text-dark mb-2">Add Used Item</div>
+              <div class="warn d-none mb-2" id="pdfWarn">
+                PDF library isn’t loaded (jsPDF). You can still build the incident and copy the summary text.
+                Ensure your network allows the jsPDF CDN.
+              </div>
+
+              <label class="form-label fw-bold">Item</label>
+              <select class="form-select fw-bold" id="incItemSelect"></select>
+
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label fw-bold">Dose / Qty</label>
+                  <input class="form-control" id="incDose" placeholder="e.g., 0.4 mg / 2 tabs / 1 kit" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold">Route / Details</label>
+                  <input class="form-control" id="incRoute" placeholder="e.g., SL / IV / IN / PO / applied" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold">Time (optional)</label>
+                  <input class="form-control" id="incItemTime" type="time" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-bold">Lot/Exp (optional)</label>
+                  <input class="form-control" id="incLotExp" placeholder="e.g., Lot 123 / Exp 2027-06" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Item Notes (optional)</label>
+                  <input class="form-control" id="incItemNotes" placeholder="e.g., partial dose / wasted / remainder returned" />
+                </div>
+              </div>
+
+              <div class="d-grid mt-2">
+                <button class="btn btn-app" id="btnIncAddItem">Add to Incident</button>
+              </div>
+
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-outline-app" id="btnIncSave">Save Incident</button>
+                <button class="btn btn-app" id="btnIncPdf">Generate PDF</button>
+                <button class="btn btn-outline-app" id="btnIncCopy">Copy Summary Text</button>
+              </div>
+
+              <div class="text-muted small mt-2">
+                Incident is saved in sessionStorage (demo). PDF downloads locally.
+              </div>
+            </div>
+
+            <div class="col-lg-7">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                <div class="fw-bold text-dark">Items Used</div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-app btn-sm" id="btnIncClearItems">Clear Items</button>
+                  <button class="btn btn-outline-app btn-sm" id="btnIncLoadRecent">Load Most Recent</button>
+                </div>
+              </div>
+
+              <div id="incItemsWrap" class="d-flex flex-wrap gap-2"></div>
+
+              <hr class="my-3">
+
+              <div class="fw-bold text-dark mb-2">Preview</div>
+              <div class="admin-card">
+                <div class="text-muted small" id="incPreview"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DUE LIST MODAL -->
+  <div class="modal fade" id="dueModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="fw-bold" style="font-size:1.1rem;">Due Checks</div>
+            <div class="small" style="opacity:.9;">Tap a row to open its checklist</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead><tr><th style="width:120px;">Type</th><th>Location</th><th style="width:140px;">Status</th><th style="width:140px;"></th></tr></thead>
+              <tbody id="dueModalTbody"></tbody>
+            </table>
+          </div>
+          <div class="text-muted small">Daily resets every day; Monthly resets each calendar month.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT MODAL -->
+  <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="fw-bold" style="font-size:1.1rem;">Reports</div>
+            <div class="small" id="reportSubtitle" style="opacity:.9;"></div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="repDefault" class="text-muted">Select a report.</div>
+
+          <div id="repHistory" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="fw-bold">Activity</div>
+              <div><button class="btn btn-outline-app btn-sm" id="btnClearActivity">Clear</button></div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th style="width:170px;">Time</th>
+                    <th style="width:90px;">Mode</th>
+                    <th style="width:90px;">User</th>
+                    <th style="width:130px;">Company</th>
+                    <th style="width:170px;">Action</th>
+                    <th style="width:260px;">Location</th>
+                    <th>Note</th>
+                  </tr>
+                </thead>
+                <tbody id="histTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="repSnapshot" class="d-none">
+            <div class="fw-bold mb-2">Master Lists (Admin-managed)</div>
+            <div class="text-muted small mb-2">
+              Master lists are company-agnostic in this demo, but locations are company-scoped.
+            </div>
+            <div class="row g-2">
+              <div class="col-lg-6">
+                <div class="fw-bold mb-2">Meds (MedChecks)</div>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle">
+                    <thead><tr><th>Name</th><th style="width:140px;">Category</th></tr></thead>
+                    <tbody id="medsTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="fw-bold mb-2">Supplies (SupplyChecks)</div>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle">
+                    <thead><tr><th>Name</th><th style="width:140px;">Category</th></tr></thead>
+                    <tbody id="supTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="repDiscs" class="d-none">
+            <div class="row g-2">
+              <div class="col-lg-6">
+                <div class="fw-bold mb-2">New Discrepancy</div>
+                <label class="form-label fw-bold">Location</label>
+                <input class="form-control mb-2" id="discLoc" placeholder="e.g., Unit 42 Out of Box" />
+                <label class="form-label fw-bold">Description</label>
+                <textarea class="form-control mb-2" id="discDesc" rows="4" placeholder="What’s wrong? Missing? Count mismatch?"></textarea>
+                <div class="d-grid">
+                  <button class="btn btn-app" id="btnSaveDisc">Submit</button>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="fw-bold">Recent Discrepancies</div>
+                  <button class="btn btn-outline-app btn-sm" id="btnClearDiscs">Clear</button>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle">
+                    <thead><tr><th style="width:170px;">Time</th><th style="width:90px;">Mode</th><th style="width:130px;">Company</th><th style="width:220px;">Location</th><th>Description</th></tr></thead>
+                    <tbody id="discTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="repSearch" class="d-none">
+            <div class="fw-bold mb-2">Search Logs</div>
+            <div class="row g-2 mb-2">
+              <div class="col-lg-8"><input class="form-control" id="searchText" placeholder="Search by company, location, action, note, user…" /></div>
+              <div class="col-lg-4 d-grid"><button class="btn btn-app" id="btnRunSearch">Search</button></div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle">
+                <thead>
+                  <tr>
+                    <th style="width:170px;">Time</th>
+                    <th style="width:90px;">Mode</th>
+                    <th style="width:90px;">User</th>
+                    <th style="width:130px;">Company</th>
+                    <th style="width:170px;">Action</th>
+                    <th style="width:260px;">Location</th>
+                    <th>Note</th>
+                  </tr>
+                </thead>
+                <tbody id="searchTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SWITCH COMPANY MODAL -->
+  <div class="modal fade" id="companyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="fw-bold" style="font-size:1.1rem;">Switch Company</div>
+            <div class="small" style="opacity:.9;">Company affects locations and stored data namespace</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-bold">Company</label>
+          <select class="form-select fw-bold" id="companySelect"></select>
+          <div class="d-grid mt-3">
+            <button class="btn btn-app" id="btnApplyCompany">Apply</button>
+          </div>
+          <div class="text-muted small mt-2">Tip: Admin can add companies in the Admin section.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+
+  <!-- jsPDF (PDF generation) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /*************************
+     * Defaults (seed)
+     *************************/
+    const DEFAULT_COMPANIES = ["MC1","Lisbon"];
+
+    const DEFAULT_LOCATIONS_BY_COMPANY = {
+      "MC1": [
+        "Supply Room",
+        "Unit 43 Narcotic Box",
+        "Unit 43 Out of Box",
+        "Unit 42 Narcotic Box",
+        "Unit 42 Out of Box",
+        "MC1 Narcotics",
+        "MC1 Medication Box"
+      ],
+      "Lisbon": [
+        "Supply Room",
+        "Unit 43 Narcotic Box",
+        "Unit 43 Out of Box",
+        "Unit 42 Narcotic Box",
+        "Unit 42 Out of Box",
+        "Lisbon Narcotics",
+        "Lisbon Medication Box"
+      ]
+    };
+
+    // Defaults: meds + supplies (admin editable)
+    const DEFAULT_MEDS = [
+      { name:"Aspirin 81mg chewable", cat:"Cardiac" },
+      { name:"Nitroglycerin 0.4mg SL", cat:"Cardiac" },
+      { name:"Epinephrine 1:10,000 (cardiac)", cat:"Cardiac" },
+      { name:"Epinephrine 1:1,000 (anaphylaxis)", cat:"Allergy" },
+      { name:"Naloxone 4mg IN", cat:"Respiratory" },
+      { name:"Albuterol neb", cat:"Respiratory" },
+      { name:"Ipratropium (Duoneb)", cat:"Respiratory" },
+      { name:"Dextrose (D10/D50)", cat:"Endocrine" },
+      { name:"Glucagon", cat:"Endocrine" },
+      { name:"Ondansetron (Zofran)", cat:"GI" },
+      { name:"Diphenhydramine", cat:"Allergy" },
+      { name:"Methylprednisolone / Dexamethasone", cat:"Allergy" },
+      { name:"Normal Saline", cat:"Fluids" },
+      { name:"Lactated Ringers", cat:"Fluids" },
+      { name:"Acetaminophen", cat:"Pain/Fever" },
+      { name:"Ibuprofen", cat:"Pain/Fever" },
+      { name:"Fentanyl", cat:"Pain" },
+      { name:"Morphine", cat:"Pain" },
+      { name:"Ketorolac (Toradol)", cat:"Pain" },
+      { name:"Midazolam (Versed)", cat:"Sedation/Seizure" },
+      { name:"Ketamine", cat:"Sedation/Pain" },
+      { name:"Adenosine", cat:"Cardiac" },
+      { name:"Amiodarone", cat:"Cardiac" },
+      { name:"Atropine", cat:"Cardiac" },
+      { name:"Magnesium Sulfate", cat:"Cardiac/OB" },
+      { name:"Sodium Bicarbonate", cat:"Cardiac" },
+      { name:"TXA (Tranexamic Acid)", cat:"Trauma" },
+      { name:"Oxytocin", cat:"OB" }
+    ];
+
+    const DEFAULT_SUPPLIES = [
+      { name:"Gloves (S/M/L)", cat:"PPE" },
+      { name:"N95 masks", cat:"PPE" },
+      { name:"Eye protection", cat:"PPE" },
+      { name:"Gowns", cat:"PPE" },
+      { name:"4x4 gauze", cat:"Wound" },
+      { name:"ABD pads", cat:"Wound" },
+      { name:"Rolled gauze", cat:"Wound" },
+      { name:"Trauma dressing / Israeli bandage", cat:"Wound" },
+      { name:"Occlusive dressings", cat:"Wound" },
+      { name:"Tape (various)", cat:"Wound" },
+      { name:"Tourniquets", cat:"Trauma" },
+      { name:"Hemostatic gauze", cat:"Trauma" },
+      { name:"Burn sheets / dressings", cat:"Trauma" },
+      { name:"BVM adult", cat:"Airway" },
+      { name:"OPA set", cat:"Airway" },
+      { name:"NPA set", cat:"Airway" },
+      { name:"Suction canister & tubing", cat:"Airway" },
+      { name:"Yankauer suction tip", cat:"Airway" },
+      { name:"Nonrebreather masks", cat:"Oxygen" },
+      { name:"Nasal cannulas", cat:"Oxygen" },
+      { name:"Nebulizer kits", cat:"Oxygen" },
+      { name:"IV catheters 14/16/18/20/22/24", cat:"IV/IO" },
+      { name:"IV start kits", cat:"IV/IO" },
+      { name:"Saline flushes", cat:"IV/IO" },
+      { name:"IV tubing (macro/micro)", cat:"IV/IO" },
+      { name:"Pressure bags", cat:"IV/IO" },
+      { name:"BP cuffs (adult/peds)", cat:"Monitoring" },
+      { name:"Pulse ox probes", cat:"Monitoring" },
+      { name:"ECG electrodes", cat:"Monitoring" },
+      { name:"12-lead paper", cat:"Monitoring" },
+      { name:"AED/monitor pads", cat:"Resuscitation" },
+      { name:"Splints (SAM)", cat:"Immobilization" },
+      { name:"C-collars", cat:"Immobilization" },
+      { name:"Sharps container", cat:"General" },
+      { name:"Biohazard bags", cat:"General" }
+    ];
+
+    /*************************
+     * Storage
+     *************************/
+    const KEY = "mc_sc_demo_v7_incident";
+    let qrScanner = null;
+    let scanning = false;
+
+    function nowIso(){ return new Date().toISOString(); }
+    function todayKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    function monthKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    }
+    function ymd(){ return todayKey(); }
+
+    function loadState(){
+      try{
+        const raw = sessionStorage.getItem(KEY);
+        if(!raw) return null;
+        return JSON.parse(raw);
+      }catch{ return null; }
+    }
+    function saveState(s){ sessionStorage.setItem(KEY, JSON.stringify(s)); }
+
+    function ensureState(){
+      let s = loadState();
+      if(!s){
+        s = {
+          user: null,
+          role: null, // "admin" or "user"
+          mode: "med",
+          company: "MC1",
+
+          // admin-managed masters:
+          companies: [...DEFAULT_COMPANIES],
+          locationsByCompany: JSON.parse(JSON.stringify(DEFAULT_LOCATIONS_BY_COMPANY)),
+          masters: {
+            meds: JSON.parse(JSON.stringify(DEFAULT_MEDS)),
+            supplies: JSON.parse(JSON.stringify(DEFAULT_SUPPLIES))
+          },
+
+          activity: [],
+          discrepancies: [],
+
+          // NEW: incidents
+          incidents: [],
+
+          checks: {},
+          checklist: {}
+        };
+        saveState(s);
+      }
+      if(!s.checks) s.checks = {};
+      if(!s.checklist) s.checklist = {};
+      if(!s.masters) s.masters = { meds: JSON.parse(JSON.stringify(DEFAULT_MEDS)), supplies: JSON.parse(JSON.stringify(DEFAULT_SUPPLIES)) };
+      if(!s.locationsByCompany) s.locationsByCompany = JSON.parse(JSON.stringify(DEFAULT_LOCATIONS_BY_COMPANY));
+      if(!s.companies) s.companies = [...DEFAULT_COMPANIES];
+      if(!s.activity) s.activity = [];
+      if(!s.discrepancies) s.discrepancies = [];
+      if(!s.incidents) s.incidents = [];
+      saveState(s);
+      return s;
+    }
+
+    function getMode(){ return $("body").attr("data-mode"); }
+    function getCompany(){ return ensureState().company; }
+
+    function setMode(mode){
+      const s = ensureState();
+      s.mode = mode;
+      saveState(s);
+
+      $("body").attr("data-mode", mode);
+      $("#modeSelect").val(mode);
+      $("#loginMode").val(mode);
+
+      const title = (mode === "supply") ? "SupplyChecks" : "MedChecks";
+      $("#brandTitle, #pageTitle, #loginTitle").text(title);
+
+      $("#statusText").text("None");
+      renderLocationTiles();
+      renderDueTables();
+      refreshCounters();
+      refreshIncidentItemSelect();
+      refreshPdfAvailability();
+    }
+
+    function setCompany(company){
+      const s = ensureState();
+      s.company = company;
+      saveState(s);
+      $("#navCompanyBadge").text("Company: " + company);
+      $("#loginCompany").val(company);
+      renderLocationTiles();
+      renderDueTables();
+      refreshCounters();
+      renderAdminIfVisible();
+      refreshIncidentPreview();
+    }
+
+    function setUser(u, role){
+      const s = ensureState();
+      s.user = u;
+      s.role = role; // "admin" or "user"
+      saveState(s);
+      $("#whoAmI").text(u);
+      $("#whoRole").text(role);
+      $("#navAdminItem").toggleClass("d-none", role !== "admin");
+      $("#admin").toggleClass("d-none", role !== "admin");
+    }
+
+    function addActivity(action, location, note){
+      const s = ensureState();
+      s.activity.unshift({
+        ts: nowIso(),
+        mode: getMode(),
+        company: s.company,
+        user: s.user || "admin",
+        action,
+        location,
+        note: note || ""
+      });
+      if(s.activity.length > 800) s.activity.length = 800;
+      saveState(s);
+      refreshCounters();
+    }
+
+    /*************************
+     * Checks rules
+     *************************/
+    function companyLocations(){
+      const s = ensureState();
+      return (s.locationsByCompany[s.company] || []);
+    }
+    function dailyLocations(){
+      return companyLocations().filter(l => l !== "Supply Room");
+    }
+    function monthlyLocations(){ return companyLocations().includes("Supply Room") ? ["Supply Room"] : []; }
+
+    function ensureChecksNamespace(company, mode){
+      const s = ensureState();
+      if(!s.checks[company]) s.checks[company] = {};
+      if(!s.checks[company][mode]) s.checks[company][mode] = { daily:{}, monthly:{} };
+      saveState(s);
+      return s.checks[company][mode];
+    }
+
+    function isDailyComplete(company, mode, date, location){
+      const ns = ensureChecksNamespace(company, mode);
+      return !!(ns.daily?.[date]?.[location]);
+    }
+    function isMonthlyComplete(company, mode, month, location){
+      const ns = ensureChecksNamespace(company, mode);
+      return !!(ns.monthly?.[month]?.[location]);
+    }
+
+    function setDailyComplete(company, mode, date, location, val=true){
+      const ns = ensureChecksNamespace(company, mode);
+      if(!ns.daily[date]) ns.daily[date] = {};
+      ns.daily[date][location] = !!val;
+      saveState(ensureState());
+      renderDueTables(); refreshCounters();
+    }
+    function setMonthlyComplete(company, mode, month, location, val=true){
+      const ns = ensureChecksNamespace(company, mode);
+      if(!ns.monthly[month]) ns.monthly[month] = {};
+      ns.monthly[month][location] = !!val;
+      saveState(ensureState());
+      renderDueTables(); refreshCounters();
+    }
+
+    function dueChecks(company, mode){
+      const d = todayKey();
+      const m = monthKey();
+      const rows = [];
+      for(const loc of dailyLocations()){
+        rows.push({ type:"Daily", location: loc, complete: isDailyComplete(company, mode, d, loc) });
+      }
+      for(const loc of monthlyLocations()){
+        rows.push({ type:"Monthly", location: loc, complete: isMonthlyComplete(company, mode, m, loc) });
+      }
+      return rows;
+    }
+    function countDue(company, mode){
+      return dueChecks(company, mode).filter(x => !x.complete).length;
+    }
+
+    /*************************
+     * Checklist item templates (from admin master lists)
+     *************************/
+    function masterMeds(){ return ensureState().masters.meds || []; }
+    function masterSupplies(){ return ensureState().masters.supplies || []; }
+
+    function checklistTemplate(mode, type, location){
+      if(mode === "supply"){
+        const list = masterSupplies();
+        const cats = ["PPE","Airway","Oxygen","IV/IO","Wound","Trauma","Monitoring","General","Immobilization","Resuscitation"];
+        const subset = list.filter(x => cats.includes(x.cat || "General")).slice(0, 26);
+        return subset.map(x => ({ name:x.name, cat:x.cat || "General", desc:`${x.cat || "General"} • verify present / ready` }));
+      }
+
+      const list = masterMeds();
+      let subset = list.slice(0, 26);
+
+      if(String(location).toLowerCase().includes("narcotic")){
+        subset = list.filter(x =>
+          String(x.cat||"").toLowerCase().includes("pain") ||
+          String(x.cat||"").toLowerCase().includes("sedation") ||
+          String(x.cat||"").toLowerCase().includes("seizure")
+        ).slice(0, 18);
+      }
+      if(String(location).toLowerCase().includes("out of box") || String(location).toLowerCase().includes("medication box")){
+        const cats = ["Cardiac","Respiratory","Allergy","Fluids","Pain/Fever","GI","Endocrine","Trauma","OB"];
+        subset = list.filter(x => cats.includes(x.cat)).slice(0, 24);
+      }
+
+      return subset.map(x => ({ name:x.name, cat:x.cat || "Other", desc:`${x.cat || "Other"} • verify present / in date / count` }));
+    }
+
+    function periodKeyForChecklist(type){
+      if(type === "Daily") return "D:" + todayKey();
+      if(type === "Monthly") return "M:" + monthKey();
+      return "N:oneoff";
+    }
+
+    function ensureChecklistNamespace(company, mode){
+      const s = ensureState();
+      if(!s.checklist[company]) s.checklist[company] = {};
+      if(!s.checklist[company][mode]) s.checklist[company][mode] = {};
+      saveState(s);
+      return s.checklist[company][mode];
+    }
+
+    function getChecklistState(company, mode, pKey, location){
+      const s = ensureState();
+      const ns = ensureChecklistNamespace(company, mode);
+      if(!ns[pKey]) ns[pKey] = {};
+      if(!ns[pKey][location]) ns[pKey][location] = {};
+      saveState(s);
+      return ns[pKey][location];
+    }
+
+    function setChecklistItem(company, mode, pKey, location, itemName, val){
+      const locState = getChecklistState(company, mode, pKey, location);
+      locState[itemName] = !!val;
+      saveState(ensureState());
+    }
+
+    function clearChecklist(company, mode, pKey, location){
+      const s = ensureState();
+      const ns = ensureChecklistNamespace(company, mode);
+      if(ns[pKey] && ns[pKey][location]) delete ns[pKey][location];
+      saveState(s);
+    }
+
+    function isChecklistComplete(company, mode, pKey, location, items){
+      const locState = getChecklistState(company, mode, pKey, location);
+      return items.every(it => !!locState[it.name]);
+    }
+
+    /*************************
+     * Render UI
+     *************************/
+    function escapeHtml(str){
+      return String(str || "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderLocationTiles(){
+      const $wrap = $("#locationTiles").empty();
+      const locs = companyLocations();
+      for(const loc of locs){
+        $wrap.append(`
+          <div class="col-6 col-md-4 col-lg-3">
+            <button class="tile-btn js-location" data-location="${escapeHtml(loc)}">
+              ${escapeHtml(loc)
+                .replace("Narcotic Box","Narcotic<br>Box")
+                .replace("Out of Box","Out<br>of<br>Box")
+                .replace("Medication Box","Medication<br>Box")}
+              <div class="sub">Open checklist</div>
+            </button>
+          </div>
+        `);
+      }
+      $("#navCompanyBadge").text("Company: " + getCompany());
+    }
+
+    function renderDueTables(){
+      const s = ensureState();
+      const company = s.company;
+      const mode = getMode();
+      const rows = dueChecks(company, mode);
+
+      const $tb = $("#dueTbody").empty();
+      const $m = $("#dueModalTbody").empty();
+
+      for(const r of rows){
+        const rowHtml = `
+          <tr>
+            <td class="fw-bold">${r.type}</td>
+            <td>${escapeHtml(r.location)}</td>
+            <td class="fw-bold">${r.complete ? "Complete" : "Due"}</td>
+            <td>
+              <button class="btn ${r.complete ? "btn-outline-app" : "btn-app"} btn-sm js-open-checklist"
+                data-type="${r.type}" data-location="${escapeHtml(r.location)}">
+                ${r.complete ? "Review" : "Open"}
+              </button>
+            </td>
+          </tr>
+        `;
+        $tb.append(rowHtml);
+        $m.append(rowHtml);
+      }
+    }
+
+    function refreshCounters(){
+      const s = ensureState();
+      $("#countDue").text(countDue(s.company, getMode()));
+      $("#countActivity").text((s.activity || []).length);
+    }
+
+    /*************************
+     * Checklist modal
+     *************************/
+    function openChecklist(type, location){
+      stopScanner();
+
+      const s = ensureState();
+      const company = s.company;
+      const mode = getMode();
+      const pKey = periodKeyForChecklist(type);
+      const items = checklistTemplate(mode, type, location);
+      const locState = getChecklistState(company, mode, pKey, location);
+
+      $("#checklistModal").data("type", type);
+      $("#checklistModal").data("location", location);
+      $("#checklistModal").data("pkey", pKey);
+
+      $("#checklistCompany").text(company);
+      $("#checklistLocation").text(location);
+      $("#checklistSubtitle").text(`${mode === "supply" ? "SupplyChecks" : "MedChecks"} • ${type} checklist • ${pKey.replace("D:","").replace("M:","")}`);
+
+      $("#periodHint").text(type === "Daily"
+        ? `This checklist completion applies to today (${todayKey()}).`
+        : `This checklist completion applies to this month (${monthKey()}).`
+      );
+
+      const $ex = $("#exampleButtons").empty();
+      if(mode === "med"){
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="QR:ITEM|Epinephrine 1:1,000|Exp 2027-06">Example: Epi QR</button>`);
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="VIAL-1234567">Example: Vial Code</button>`);
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="QR:ITEM|Naloxone 4mg IN|Exp 2026-12">Example: Naloxone QR</button>`);
+      } else {
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="SUP-GLOVES-LARGE">Example: Gloves</button>`);
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="SUP-4X4-GAUZE">Example: 4x4 Gauze</button>`);
+        $ex.append(`<button class="btn btn-outline-app btn-sm js-example" data-code="SUP-NRB-MASK">Example: NRB Mask</button>`);
+      }
+
+      const $wrap = $("#checkItemsWrap").empty();
+      for(const it of items){
+        const checked = !!locState[it.name];
+        $wrap.append(`
+          <div class="col-12 col-md-6">
+            <div class="check-item">
+              <input class="form-check-input mt-1 js-check-item" type="checkbox"
+                data-item="${escapeHtml(it.name)}" ${checked ? "checked" : ""} />
+              <div class="meta">
+                <div class="name">${escapeHtml(it.name)}</div>
+                <div class="desc">${escapeHtml(it.desc)}</div>
+              </div>
+            </div>
+          </div>
+        `);
+      }
+
+      const hasLib = (typeof Html5Qrcode !== "undefined");
+      $("#qrWarn").toggleClass("d-none", hasLib);
+
+      $("#codeBox").val("");
+      $("#qrReader").empty();
+
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("checklistModal")).show();
+    }
+
+    function maybeMarkChecklistComplete(){
+      const s = ensureState();
+      const company = s.company;
+      const mode = getMode();
+      const type = $("#checklistModal").data("type");
+      const location = $("#checklistModal").data("location");
+      const pKey = $("#checklistModal").data("pkey");
+
+      const items = checklistTemplate(mode, type, location);
+      const complete = isChecklistComplete(company, mode, pKey, location, items);
+
+      if(complete){
+        addActivity("Checklist Complete", location, `${type} ${pKey}`);
+        if(type === "Daily") setDailyComplete(company, mode, todayKey(), location, true);
+        if(type === "Monthly") setMonthlyComplete(company, mode, monthKey(), location, true);
+      } else {
+        if(type === "Daily") setDailyComplete(company, mode, todayKey(), location, false);
+        if(type === "Monthly") setMonthlyComplete(company, mode, monthKey(), location, false);
+      }
+    }
+
+    /*************************
+     * QR scanner
+     *************************/
+    async function startScanner(){
+      $("#qrReader").empty();
+
+      if(typeof Html5Qrcode === "undefined"){
+        $("#qrWarn").removeClass("d-none");
+        alert("Html5Qrcode is not available (CDN blocked/offline). Use Enter Code, or run where unpkg.com is reachable.");
+        return;
+      }
+      if(scanning) return;
+      scanning = true;
+
+      try{
+        qrScanner = new Html5Qrcode("qrReader");
+        const config = { fps: 10, qrbox: { width: 240, height: 240 } };
+
+        await qrScanner.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => { $("#codeBox").val(decodedText); }
+        );
+      }catch(e){
+        scanning = false;
+        qrScanner = null;
+        alert("Could not start camera scanner. Use https or localhost and grant camera permission.\n\n" + (e?.message || e));
+      }
+    }
+
+    async function stopScanner(){
+      try{
+        if(qrScanner && scanning){
+          await qrScanner.stop();
+          await qrScanner.clear();
+        }
+      }catch{}
+      scanning = false;
+      qrScanner = null;
+      $("#qrReader").empty();
+    }
+
+    /*************************
+     * Reports
+     *************************/
+    function fmt(ts){
+      try { return new Date(ts).toLocaleString(); } catch { return ts; }
+    }
+
+    function openReport(name){
+      $("#repDefault, #repHistory, #repSnapshot, #repDiscs, #repSearch").addClass("d-none");
+      $("#reportSubtitle").text(name);
+
+      if(name === "History"){
+        $("#repHistory").removeClass("d-none");
+        renderActivityRows($("#histTbody"), ensureState().activity);
+      } else if(name === "Snapshot"){
+        $("#repSnapshot").removeClass("d-none");
+        renderMedsSupplies();
+      } else if(name === "Discrepancies"){
+        $("#repDiscs").removeClass("d-none");
+        renderDiscRows();
+      } else if(name === "Search"){
+        $("#repSearch").removeClass("d-none");
+        $("#searchText").val("").trigger("focus");
+        renderActivityRows($("#searchTbody"), ensureState().activity);
+      } else {
+        $("#repDefault").removeClass("d-none");
+      }
+
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("reportModal")).show();
+    }
+
+    function renderActivityRows($tb, rows){
+      $tb.empty();
+      if(!rows || rows.length === 0){
+        $tb.append(`<tr><td colspan="7" class="text-muted">No activity yet.</td></tr>`);
+        return;
+      }
+      for(const r of rows){
+        $tb.append(`
+          <tr>
+            <td>${fmt(r.ts)}</td>
+            <td class="fw-bold">${escapeHtml(r.mode)}</td>
+            <td>${escapeHtml(r.user || "")}</td>
+            <td class="fw-bold">${escapeHtml(r.company || "")}</td>
+            <td class="fw-bold">${escapeHtml(r.action || "")}</td>
+            <td>${escapeHtml(r.location || "")}</td>
+            <td>${escapeHtml(r.note || "")}</td>
+          </tr>
+        `);
+      }
+    }
+
+    function renderMedsSupplies(){
+      const s = ensureState();
+      const $m = $("#medsTbody").empty();
+      const $su = $("#supTbody").empty();
+
+      for(const it of (s.masters.meds || [])){
+        $m.append(`<tr><td class="fw-bold">${escapeHtml(it.name)}</td><td>${escapeHtml(it.cat || "Other")}</td></tr>`);
+      }
+      for(const it of (s.masters.supplies || [])){
+        $su.append(`<tr><td class="fw-bold">${escapeHtml(it.name)}</td><td>${escapeHtml(it.cat || "General")}</td></tr>`);
+      }
+    }
+
+    function renderDiscRows(){
+      const s = ensureState();
+      const $tb = $("#discTbody").empty();
+      if(!s.discrepancies || s.discrepancies.length === 0){
+        $tb.append(`<tr><td colspan="5" class="text-muted">No discrepancies yet.</td></tr>`);
+        return;
+      }
+      for(const d of s.discrepancies){
+        $tb.append(`
+          <tr>
+            <td>${fmt(d.ts)}</td>
+            <td class="fw-bold">${escapeHtml(d.mode)}</td>
+            <td class="fw-bold">${escapeHtml(d.company || "")}</td>
+            <td>${escapeHtml(d.location || "")}</td>
+            <td>${escapeHtml(d.desc || "")}</td>
+          </tr>
+        `);
+      }
+    }
+
+    /*************************
+     * Incident Builder
+     *************************/
+    function hasJsPdf(){
+      return !!(window.jspdf && window.jspdf.jsPDF);
+    }
+
+    function refreshPdfAvailability(){
+      $("#pdfWarn").toggleClass("d-none", hasJsPdf());
+    }
+
+    function getIncidentDraft(){
+      const $m = $("#incidentModal");
+      return $m.data("draft") || { items: [] };
+    }
+    function setIncidentDraft(d){
+      $("#incidentModal").data("draft", d);
+      refreshIncidentItemsUi();
+      refreshIncidentPreview();
+    }
+
+    function refreshIncidentItemSelect(){
+      const mode = getMode();
+      const s = ensureState();
+      const $sel = $("#incItemSelect").empty();
+
+      const list = (mode === "supply") ? (s.masters.supplies || []) : (s.masters.meds || []);
+      const label = (mode === "supply") ? "Supply" : "Med";
+
+      if(list.length === 0){
+        $sel.append(`<option value="">(No ${label}s in master list)</option>`);
+        return;
+      }
+
+      // Sort by category then name
+      const sorted = [...list].sort((a,b)=>{
+        const ca = (a.cat||"").localeCompare(b.cat||"");
+        if(ca !== 0) return ca;
+        return (a.name||"").localeCompare(b.name||"");
+      });
+
+      let lastCat = null;
+      for(const it of sorted){
+        const cat = it.cat || "Other";
+        if(cat !== lastCat){
+          $sel.append(`<option disabled>— ${cat} —</option>`);
+          lastCat = cat;
+        }
+        $sel.append(`<option value="${escapeHtml(it.name)}">${escapeHtml(it.name)}</option>`);
+      }
+    }
+
+    function openIncidentBuilder(loadMostRecent=false){
+      stopScanner();
+
+      // init defaults
+      const s = ensureState();
+      const d = new Date();
+      $("#incDate").val(ymd());
+      $("#incTime").val(d.toTimeString().slice(0,5));
+      $("#incUnit").val("");
+      $("#incNotes").val("");
+      $("#incNumber").val("");
+
+      refreshIncidentItemSelect();
+      refreshPdfAvailability();
+
+      let draft = { items: [] };
+
+      if(loadMostRecent && s.incidents && s.incidents.length){
+        const last = s.incidents[0];
+        draft = {
+          id: last.id,
+          number: last.number,
+          date: last.date,
+          time: last.time,
+          unit: last.unit,
+          notes: last.notes,
+          company: s.company,
+          mode: getMode(),
+          items: JSON.parse(JSON.stringify(last.items || []))
+        };
+        $("#incNumber").val(last.number || "");
+        $("#incDate").val(last.date || ymd());
+        $("#incTime").val(last.time || "");
+        $("#incUnit").val(last.unit || "");
+        $("#incNotes").val(last.notes || "");
+      }
+
+      setIncidentDraft(draft);
+
+      $("#incidentSubtitle").text(`${getMode()==="supply" ? "SupplyChecks" : "MedChecks"} • Company: ${s.company} • Select used items + generate PDF`);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("incidentModal")).show();
+    }
+
+    function validateIncidentHeader(){
+      const number = ($("#incNumber").val() || "").trim();
+      if(!number) return { ok:false, msg:"Incident Number is required." };
+      return { ok:true };
+    }
+
+    function addIncidentItemFromForm(){
+      const draft = getIncidentDraft();
+      const itemName = ($("#incItemSelect").val() || "").trim();
+      if(!itemName){
+        alert("Select an item first.");
+        return;
+      }
+      const dose = ($("#incDose").val() || "").trim();
+      const route = ($("#incRoute").val() || "").trim();
+      const t = ($("#incItemTime").val() || "").trim();
+      const lotExp = ($("#incLotExp").val() || "").trim();
+      const notes = ($("#incItemNotes").val() || "").trim();
+
+      const item = {
+        id: "it_" + Math.random().toString(16).slice(2),
+        name: itemName,
+        dose: dose,
+        route: route,
+        time: t,
+        lotExp: lotExp,
+        notes: notes
+      };
+
+      draft.items = draft.items || [];
+      draft.items.push(item);
+      setIncidentDraft(draft);
+
+      // clear item inputs (keep selected item)
+      $("#incDose,#incRoute,#incItemTime,#incLotExp,#incItemNotes").val("");
+      addActivity("Incident: Add Item", itemName, `${dose || ""} ${route || ""}`.trim());
+    }
+
+    function removeIncidentItem(id){
+      const draft = getIncidentDraft();
+      draft.items = (draft.items || []).filter(x => x.id !== id);
+      setIncidentDraft(draft);
+    }
+
+    function clearIncidentItems(){
+      const draft = getIncidentDraft();
+      draft.items = [];
+      setIncidentDraft(draft);
+    }
+
+    function refreshIncidentItemsUi(){
+      const draft = getIncidentDraft();
+      const $wrap = $("#incItemsWrap").empty();
+
+      if(!draft.items || draft.items.length === 0){
+        $wrap.append(`<div class="text-muted small">No items added yet. Add meds/supplies used on this incident.</div>`);
+        return;
+      }
+
+      for(const it of draft.items){
+        const labelBits = [
+          it.name,
+          it.dose ? `• ${it.dose}` : "",
+          it.route ? `• ${it.route}` : "",
+          it.time ? `• ${it.time}` : ""
+        ].filter(Boolean).join(" ");
+        $wrap.append(`
+          <span class="pill">
+            ${escapeHtml(labelBits)}
+            <button type="button" class="x js-inc-del" data-id="${escapeHtml(it.id)}">x</button>
+          </span>
+        `);
+      }
+    }
+
+    function incidentSummaryText(incident){
+      const lines = [];
+      lines.push(`${incident.mode === "supply" ? "SupplyChecks" : "MedChecks"} Incident Summary`);
+      lines.push(`Company: ${incident.company}`);
+      lines.push(`Incident #: ${incident.number}`);
+      lines.push(`Date/Time: ${incident.date}${incident.time ? " " + incident.time : ""}`);
+      if(incident.unit) lines.push(`Unit/Crew: ${incident.unit}`);
+      if(incident.notes) lines.push(`Notes: ${incident.notes}`);
+      lines.push("");
+      lines.push("Items Used:");
+      if(!incident.items || incident.items.length === 0){
+        lines.push("- (none)");
+      } else {
+        incident.items.forEach((it, idx)=>{
+          const parts = [];
+          parts.push(`${idx+1}. ${it.name}`);
+          if(it.dose) parts.push(`Dose/Qty: ${it.dose}`);
+          if(it.route) parts.push(`Route/Details: ${it.route}`);
+          if(it.time) parts.push(`Time: ${it.time}`);
+          if(it.lotExp) parts.push(`Lot/Exp: ${it.lotExp}`);
+          if(it.notes) parts.push(`Notes: ${it.notes}`);
+          lines.push(parts.join(" | "));
+        });
+      }
+      return lines.join("\n");
+    }
+
+    function refreshIncidentPreview(){
+      const s = ensureState();
+      const draft = getIncidentDraft();
+      const incident = {
+        id: draft.id || null,
+        company: s.company,
+        mode: getMode(),
+        number: ($("#incNumber").val() || "").trim() || "(not set)",
+        date: ($("#incDate").val() || "").trim() || ymd(),
+        time: ($("#incTime").val() || "").trim(),
+        unit: ($("#incUnit").val() || "").trim(),
+        notes: ($("#incNotes").val() || "").trim(),
+        items: draft.items || []
+      };
+      $("#incPreview").text(incidentSummaryText(incident));
+    }
+
+    function saveIncidentToState(){
+      const v = validateIncidentHeader();
+      if(!v.ok){ alert(v.msg); return null; }
+
+      const s = ensureState();
+      const draft = getIncidentDraft();
+
+      const incident = {
+        id: draft.id || ("inc_" + Math.random().toString(16).slice(2)),
+        createdTs: draft.createdTs || nowIso(),
+        company: s.company,
+        mode: getMode(),
+        user: s.user || "user",
+        number: ($("#incNumber").val() || "").trim(),
+        date: ($("#incDate").val() || "").trim() || ymd(),
+        time: ($("#incTime").val() || "").trim(),
+        unit: ($("#incUnit").val() || "").trim(),
+        notes: ($("#incNotes").val() || "").trim(),
+        items: JSON.parse(JSON.stringify(draft.items || []))
+      };
+
+      // upsert (by id)
+      const idx = (s.incidents || []).findIndex(x => x.id === incident.id);
+      if(idx >= 0) s.incidents[idx] = incident;
+      else s.incidents.unshift(incident);
+
+      // keep recent
+      if(s.incidents.length > 60) s.incidents.length = 60;
+
+      saveState(s);
+      setIncidentDraft({ ...incident }); // keep draft aligned
+      addActivity("Incident Saved", incident.number, `${incident.items.length} item(s)`);
+      return incident;
+    }
+
+    function generateIncidentPdf(){
+      const incident = saveIncidentToState();
+      if(!incident) return;
+
+      if(!hasJsPdf()){
+        $("#pdfWarn").removeClass("d-none");
+        alert("jsPDF is not available (CDN blocked/offline). Use Copy Summary Text instead.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:"pt", format:"letter" });
+
+      const margin = 44;
+      let y = margin;
+
+      // Header
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(16);
+      doc.text(`${incident.mode === "supply" ? "SupplyChecks" : "MedChecks"} – Incident Summary`, margin, y);
+      y += 18;
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(11);
+      doc.text(`Company: ${incident.company}`, margin, y); y += 14;
+      doc.text(`Incident #: ${incident.number}`, margin, y); y += 14;
+      doc.text(`Date/Time: ${incident.date}${incident.time ? " " + incident.time : ""}`, margin, y); y += 14;
+      if(incident.unit){ doc.text(`Unit/Crew: ${incident.unit}`, margin, y); y += 14; }
+      y += 6;
+
+      // Notes
+      if(incident.notes){
+        doc.setFont("helvetica","bold");
+        doc.text("Notes:", margin, y); y += 14;
+        doc.setFont("helvetica","normal");
+        const noteLines = doc.splitTextToSize(incident.notes, 612 - margin*2);
+        doc.text(noteLines, margin, y);
+        y += (noteLines.length * 13) + 10;
+      }
+
+      // Items
+      doc.setFont("helvetica","bold");
+      doc.text("Items Used:", margin, y); y += 14;
+      doc.setFont("helvetica","normal");
+
+      if(!incident.items || incident.items.length === 0){
+        doc.text("- (none)", margin, y); y += 14;
+      } else {
+        incident.items.forEach((it, idx)=>{
+          const parts = [];
+          parts.push(`${idx+1}. ${it.name}`);
+          if(it.dose) parts.push(`Dose/Qty: ${it.dose}`);
+          if(it.route) parts.push(`Route: ${it.route}`);
+          if(it.time) parts.push(`Time: ${it.time}`);
+          if(it.lotExp) parts.push(`Lot/Exp: ${it.lotExp}`);
+          if(it.notes) parts.push(`Notes: ${it.notes}`);
+
+          const line = parts.join("   |   ");
+          const lines = doc.splitTextToSize(line, 612 - margin*2);
+          if(y + (lines.length*13) > 740){
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(lines, margin, y);
+          y += (lines.length*13) + 8;
+        });
+      }
+
+      // Footer
+      doc.setFontSize(9);
+      doc.setTextColor(80);
+      doc.text(`Generated: ${new Date().toLocaleString()}  •  User: ${incident.user}`, margin, 780);
+
+      const safeNum = String(incident.number).replace(/[^a-z0-9\-_]+/gi,"_");
+      const fname = `Incident_${safeNum}_${incident.date}.pdf`;
+      doc.save(fname);
+
+      addActivity("Incident PDF Generated", incident.number, fname);
+    }
+
+    function copyIncidentSummary(){
+      const incident = saveIncidentToState();
+      if(!incident) return;
+      const txt = incidentSummaryText(incident);
+      navigator.clipboard?.writeText(txt).then(()=>{
+        alert("Incident summary copied to clipboard.");
+      }).catch(()=>{
+        alert("Could not copy automatically. Select the Preview text and copy manually.");
+      });
+      addActivity("Incident Summary Copied", incident.number, `${incident.items.length} item(s)`);
+    }
+
+    /*************************
+     * Admin render + actions
+     *************************/
+    function isAdmin(){ return ensureState().role === "admin"; }
+
+    function renderAdminIfVisible(){
+      if(!isAdmin()) return;
+      const s = ensureState();
+      $("#adminCompanyNow").text(s.company);
+      $("#adminLocCompany").text(s.company);
+      $("#adminCompanyChips").empty();
+      $("#adminLocationChips").empty();
+      $("#adminMedChips").empty();
+      $("#adminSupChips").empty();
+
+      // companies
+      for(const c of s.companies){
+        const $chip = $(`<span class="chip">${escapeHtml(c)} <button type="button" class="js-del-company" data-company="${escapeHtml(c)}">x</button></span>`);
+        $chip.on("click", function(e){
+          if($(e.target).hasClass("js-del-company")) return;
+          $("#companySelect").val(c);
+          setCompany(c);
+          addActivity("Company Selected", "-", c);
+        });
+        $("#adminCompanyChips").append($chip);
+      }
+
+      // locations
+      const locs = s.locationsByCompany[s.company] || [];
+      for(const loc of locs){
+        $("#adminLocationChips").append(`<span class="chip">${escapeHtml(loc)} <button type="button" class="js-del-loc" data-location="${escapeHtml(loc)}">x</button></span>`);
+      }
+
+      // masters
+      for(const it of (s.masters.meds || [])){
+        $("#adminMedChips").append(`<span class="chip">${escapeHtml(it.name)} <button type="button" class="js-del-med" data-name="${escapeHtml(it.name)}">x</button></span>`);
+      }
+      for(const it of (s.masters.supplies || [])){
+        $("#adminSupChips").append(`<span class="chip">${escapeHtml(it.name)} <button type="button" class="js-del-sup" data-name="${escapeHtml(it.name)}">x</button></span>`);
+      }
+
+      refreshIncidentItemSelect();
+    }
+
+    function addCompany(name){
+      const s = ensureState();
+      if(!name) return;
+      if(s.companies.includes(name)) return;
+      s.companies.push(name);
+      s.locationsByCompany[name] = ["Supply Room"];
+      saveState(s);
+      addActivity("Admin: Add Company", "-", name);
+      renderAdminIfVisible();
+      refreshCompanySelect();
+    }
+
+    function deleteCompany(name){
+      const s = ensureState();
+      if(name === "MC1" || name === "Lisbon"){
+        alert("Demo: cannot delete the default companies.");
+        return;
+      }
+      s.companies = s.companies.filter(x => x !== name);
+      delete s.locationsByCompany[name];
+      if(s.company === name) s.company = s.companies[0] || "MC1";
+      saveState(s);
+      addActivity("Admin: Delete Company", "-", name);
+      setCompany(s.company);
+      renderAdminIfVisible();
+      refreshCompanySelect();
+    }
+
+    function addLocation(loc){
+      const s = ensureState();
+      if(!loc) return;
+      const c = s.company;
+      if(!s.locationsByCompany[c]) s.locationsByCompany[c] = [];
+      if(s.locationsByCompany[c].includes(loc)) return;
+      s.locationsByCompany[c].push(loc);
+      saveState(s);
+      addActivity("Admin: Add Location", loc, c);
+      renderLocationTiles();
+      renderDueTables();
+      renderAdminIfVisible();
+    }
+
+    function deleteLocation(loc){
+      const s = ensureState();
+      const c = s.company;
+      s.locationsByCompany[c] = (s.locationsByCompany[c] || []).filter(x => x !== loc);
+      saveState(s);
+      addActivity("Admin: Delete Location", loc, c);
+      renderLocationTiles();
+      renderDueTables();
+      renderAdminIfVisible();
+    }
+
+    function addMed(name){
+      const s = ensureState();
+      if(!name) return;
+      if((s.masters.meds || []).some(x => x.name === name)) return;
+      s.masters.meds.push({ name, cat:"Other" });
+      saveState(s);
+      addActivity("Admin: Add Med", "-", name);
+      renderAdminIfVisible();
+    }
+    function deleteMed(name){
+      const s = ensureState();
+      s.masters.meds = (s.masters.meds || []).filter(x => x.name !== name);
+      saveState(s);
+      addActivity("Admin: Delete Med", "-", name);
+      renderAdminIfVisible();
+    }
+
+    function addSup(name){
+      const s = ensureState();
+      if(!name) return;
+      if((s.masters.supplies || []).some(x => x.name === name)) return;
+      s.masters.supplies.push({ name, cat:"General" });
+      saveState(s);
+      addActivity("Admin: Add Supply", "-", name);
+      renderAdminIfVisible();
+    }
+    function deleteSup(name){
+      const s = ensureState();
+      s.masters.supplies = (s.masters.supplies || []).filter(x => x.name !== name);
+      saveState(s);
+      addActivity("Admin: Delete Supply", "-", name);
+      renderAdminIfVisible();
+    }
+
+    function resetMasters(){
+      const s = ensureState();
+      s.masters.meds = JSON.parse(JSON.stringify(DEFAULT_MEDS));
+      s.masters.supplies = JSON.parse(JSON.stringify(DEFAULT_SUPPLIES));
+      saveState(s);
+      addActivity("Admin: Reset Masters", "-", "Defaults");
+      renderAdminIfVisible();
+      refreshIncidentItemSelect();
+    }
+
+    function exportJson(){
+      const s = ensureState();
+      const txt = JSON.stringify(s, null, 2);
+      navigator.clipboard?.writeText(txt).catch(()=>{});
+      alert("Export copied to clipboard (if allowed). Also printed to console.");
+      console.log("EXPORT JSON:", txt);
+    }
+
+    function showImport(){ $("#importWrap").toggleClass("d-none"); }
+
+    function applyImport(){
+      try{
+        const raw = $("#importBox").val();
+        const obj = JSON.parse(raw);
+        sessionStorage.setItem(KEY, JSON.stringify(obj));
+        const s = ensureState();
+        addActivity("Admin: Import", "-", "JSON import applied");
+        setMode(s.mode || "med");
+        setCompany(s.company || "MC1");
+        setUser(s.user || "admin", s.role || "admin");
+        renderAdminIfVisible();
+        refreshCompanySelect();
+        $("#importWrap").addClass("d-none");
+        alert("Import applied.");
+      }catch(e){
+        alert("Import failed. Make sure it is valid JSON.\n\n" + (e?.message || e));
+      }
+    }
+
+    /*************************
+     * Seed / Clear
+     *************************/
+    function seedExamples(){
+      const s = ensureState();
+      addActivity("Seed", "System", "Loaded sample use cases");
+      addActivity("Scan/Add Code", "Unit 42 Out of Box", "VIAL-1234567");
+      addActivity("Discrepancy Submitted", "Unit 43 Narcotic Box", "Missing Ketamine vial");
+
+      // seed incident
+      const inc = {
+        id: "inc_seed_" + Math.random().toString(16).slice(2),
+        createdTs: nowIso(),
+        company: s.company,
+        mode: getMode(),
+        user: s.user || "user",
+        number: "DEMO-INC-001",
+        date: ymd(),
+        time: new Date().toTimeString().slice(0,5),
+        unit: "Unit 42",
+        notes: "Demo incident summary for attaching to run report.",
+        items: [
+          { id:"it1", name: (getMode()==="supply" ? "4x4 gauze" : "Nitroglycerin 0.4mg SL"), dose: (getMode()==="supply" ? "2 packs" : "0.4 mg"), route: (getMode()==="supply" ? "applied" : "SL"), time: "12:34", lotExp:"", notes:"" },
+          { id:"it2", name: (getMode()==="supply" ? "Nonrebreather masks" : "Aspirin 81mg chewable"), dose: (getMode()==="supply" ? "1 mask" : "324 mg (4 tabs)"), route: (getMode()==="supply" ? "placed" : "PO"), time: "12:36", lotExp:"", notes:"" }
+        ]
+      };
+      s.incidents.unshift(inc);
+      if(s.incidents.length > 60) s.incidents.length = 60;
+      saveState(s);
+      addActivity("Incident Saved", inc.number, `${inc.items.length} item(s)`);
+
+      alert("Seed complete. Try: I want to… → Create an incident → Load Most Recent → Generate PDF.");
+    }
+
+    function clearAll(){
+      sessionStorage.removeItem(KEY);
+      ensureState();
+      alert("Cleared all session data.");
+      location.reload();
+    }
+
+    /*************************
+     * Login
+     *************************/
+    function showLogin(){ $("#loginOverlay").show(); }
+    function hideLogin(){ $("#loginOverlay").hide(); }
+
+    function tryAutoLogin(){
+      const s = ensureState();
+      if(s.user){
+        setMode(s.mode || "med");
+        setCompany(s.company || "MC1");
+        setUser(s.user, s.role || "user");
+        hideLogin();
+      } else showLogin();
+    }
+
+    function doLogin(){
+      const u = ($("#loginUser").val() || "").trim();
+      const p = ($("#loginPass").val() || "").trim();
+      const company = $("#loginCompany").val();
+      const mode = $("#loginMode").val();
+
+      let role = null;
+      if(u==="admin" && p==="admin") role = "admin";
+      if(u==="user" && p==="user") role = "user";
+
+      if(!role){
+        alert("Invalid credentials for demo. Try admin/admin or user/user.");
+        return;
+      }
+
+      setMode(mode);
+      setCompany(company);
+      setUser(u, role);
+
+      addActivity("Login", "-", `${u}/${role}`);
+      hideLogin();
+
+      renderAdminIfVisible();
+      refreshCompanySelect();
+      refreshIncidentItemSelect();
+    }
+
+    function doLogout(e){
+      if(e) e.preventDefault();
+      stopScanner();
+      const s = ensureState();
+      s.user = null;
+      s.role = null;
+      saveState(s);
+      showLogin();
+    }
+
+    /*************************
+     * Company switch
+     *************************/
+    function refreshCompanySelect(){
+      const s = ensureState();
+      const $sel = $("#companySelect").empty();
+      for(const c of s.companies){
+        $sel.append(`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`);
+      }
+      $sel.val(s.company);
+    }
+
+    function openCompanySwitch(){
+      refreshCompanySelect();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("companyModal")).show();
+    }
+
+    function applyCompanySwitch(){
+      const c = $("#companySelect").val();
+      setCompany(c);
+      addActivity("Company Switch", "-", c);
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("companyModal")).hide();
+    }
+
+    /*************************
+     * Intent routing
+     *************************/
+    function handleIntent(intent){
+      if(intent === "checksToday"){ openDueModal(); return; }
+      if(intent === "scan"){
+        const loc = companyLocations().find(x => x.toLowerCase().includes("out of box")) || companyLocations()[0];
+        openChecklist((loc==="Supply Room")?"Monthly":"Daily", loc);
+        setTimeout(()=>startScanner(), 350);
+        return;
+      }
+      if(intent === "incident"){
+        openIncidentBuilder(false);
+        return;
+      }
+      if(intent === "supplyRoom"){ openChecklist("Monthly", "Supply Room"); return; }
+      if(intent === "unit42oob"){ openChecklist("Daily", "Unit 42 Out of Box"); return; }
+      if(intent === "unit43oob"){ openChecklist("Daily", "Unit 43 Out of Box"); return; }
+      if(intent === "mc1medbox"){
+        const loc = companyLocations().find(x => x.toLowerCase().includes("medication box")) || companyLocations()[0];
+        openChecklist((loc==="Supply Room")?"Monthly":"Daily", loc);
+        return;
+      }
+      if(intent === "snapshot"){ openReport("Snapshot"); return; }
+      if(intent === "history"){ openReport("History"); return; }
+      if(intent === "discrepancy"){ openReport("Discrepancies"); return; }
+    }
+
+    function openDueModal(){
+      renderDueTables();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("dueModal")).show();
+    }
+
+    /*************************
+     * Code Add / completion
+     *************************/
+    function cssEscape(s){
+      if(window.CSS && CSS.escape) return CSS.escape(s);
+      return String(s).replace(/["\\]/g, "\\$&");
+    }
+
+    /*************************
+     * Wire up
+     *************************/
+    $(function(){
+      $("#year").text(new Date().getFullYear());
+      ensureState();
+
+      setMode(ensureState().mode || "med");
+
+      tryAutoLogin();
+      $("#btnLogin").on("click", doLogin);
+      $("#loginPass").on("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
+
+      $("#modeSelect").on("change", function(){
+        setMode($(this).val());
+        addActivity("Mode Switch","-",$(this).val());
+      });
+
+      $("#btnLogout").on("click", doLogout);
+
+      renderLocationTiles();
+      renderDueTables();
+      refreshCounters();
+      refreshCompanySelect();
+      refreshIncidentItemSelect();
+      refreshPdfAvailability();
+
+      $("#btnOpenDue").on("click", openDueModal);
+      $("#btnOpenIncident").on("click", ()=>openIncidentBuilder(false));
+      $("#btnSeed").on("click", seedExamples);
+      $("#btnClearAll").on("click", clearAll);
+      $("#btnSwitchCompany").on("click", openCompanySwitch);
+      $("#btnApplyCompany").on("click", applyCompanySwitch);
+
+      $(document).on("click", ".js-location", function(){
+        $(".js-location").removeClass("is-selected");
+        $(this).addClass("is-selected");
+        const loc = $(this).data("location");
+        $("#statusText").text(loc);
+        const type = (loc === "Supply Room") ? "Monthly" : "Daily";
+        openChecklist(type, loc);
+      });
+
+      $(document).on("click", ".js-intent", function(){ handleIntent($(this).data("intent")); });
+
+      $(document).on("click", ".js-open-checklist", function(){
+        const type = $(this).data("type");
+        const loc = $(this).data("location");
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("dueModal")).hide();
+        openChecklist(type, loc);
+      });
+
+      $(document).on("change", ".js-check-item", function(){
+        const s = ensureState();
+        const company = s.company;
+        const mode = getMode();
+        const type = $("#checklistModal").data("type");
+        const loc = $("#checklistModal").data("location");
+        const pKey = $("#checklistModal").data("pkey");
+        const itemName = $(this).data("item");
+        const val = $(this).is(":checked");
+
+        setChecklistItem(company, mode, pKey, loc, itemName, val);
+        maybeMarkChecklistComplete();
+      });
+
+      $(document).on("click", ".js-example", function(){ $("#codeBox").val($(this).data("code")).trigger("focus"); });
+
+      $("#btnCodeAdd").on("click", function(){
+        const s = ensureState();
+        const company = s.company;
+        const mode = getMode();
+        const type = $("#checklistModal").data("type");
+        const loc = $("#checklistModal").data("location");
+        const pKey = $("#checklistModal").data("pkey");
+        const code = ($("#codeBox").val() || "").trim();
+        if(!code){ alert("Enter/scan a code first."); return; }
+
+        const items = checklistTemplate(mode, type, loc);
+        const codeLc = code.toLowerCase();
+        let matched = false;
+
+        for(const it of items){
+          const token = String(it.name).toLowerCase().split(" ")[0];
+          if(token && codeLc.includes(token)){
+            setChecklistItem(company, mode, pKey, loc, it.name, true);
+            $(`.js-check-item[data-item="${cssEscape(it.name)}"]`).prop("checked", true);
+            matched = true;
+          }
+        }
+
+        addActivity("Scan/Add Code", loc, code);
+        $("#codeBox").val("").trigger("focus");
+        if(matched) maybeMarkChecklistComplete();
+      });
+
+      $("#btnCompleteChecklist").on("click", function(){
+        const s = ensureState();
+        const company = s.company;
+        const mode = getMode();
+        const type = $("#checklistModal").data("type");
+        const loc = $("#checklistModal").data("location");
+        const pKey = $("#checklistModal").data("pkey");
+
+        const items = checklistTemplate(mode, type, loc);
+        const complete = isChecklistComplete(company, mode, pKey, loc, items);
+        if(!complete){
+          alert("Checklist is not complete yet. Check all items first (concept).");
+          return;
+        }
+
+        addActivity("Checklist Complete", loc, `${type} ${pKey}`);
+        if(type === "Daily") setDailyComplete(company, mode, todayKey(), loc, true);
+        if(type === "Monthly") setMonthlyComplete(company, mode, monthKey(), loc, true);
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("checklistModal")).hide();
+      });
+
+      $("#btnResetChecklist").on("click", function(){
+        const s = ensureState();
+        const company = s.company;
+        const mode = getMode();
+        const type = $("#checklistModal").data("type");
+        const loc = $("#checklistModal").data("location");
+        const pKey = $("#checklistModal").data("pkey");
+
+        clearChecklist(company, mode, pKey, loc);
+        if(type === "Daily") setDailyComplete(company, mode, todayKey(), loc, false);
+        if(type === "Monthly") setMonthlyComplete(company, mode, monthKey(), loc, false);
+
+        addActivity("Checklist Reset", loc, `${type} ${pKey}`);
+        openChecklist(type, loc);
+      });
+
+      $("#btnStartScan").on("click", startScanner);
+      $("#btnStopScan").on("click", stopScanner);
+      $("#checklistModal").on("hidden.bs.modal", function(){ stopScanner(); });
+
+      // Reports
+      $(document).on("click", ".js-report", function(){ openReport($(this).data("report")); });
+
+      $("#btnClearActivity").on("click", function(){
+        const s = ensureState();
+        s.activity = [];
+        saveState(s);
+        refreshCounters();
+        renderActivityRows($("#histTbody"), []);
+      });
+
+      $("#btnSaveDisc").on("click", function(){
+        const s = ensureState();
+        const mode = getMode();
+        const user = s.user || "admin";
+        const loc = ($("#discLoc").val() || "").trim();
+        const desc = ($("#discDesc").val() || "").trim();
+        if(!loc || !desc){ alert("Location and Description required."); return; }
+
+        s.discrepancies.unshift({ ts: nowIso(), mode, company: s.company, user, location: loc, desc });
+        if(s.discrepancies.length > 250) s.discrepancies.length = 250;
+        saveState(s);
+
+        addActivity("Discrepancy Submitted", loc, desc);
+        $("#discLoc,#discDesc").val("");
+        renderDiscRows();
+      });
+
+      $("#btnClearDiscs").on("click", function(){
+        const s = ensureState();
+        s.discrepancies = [];
+        saveState(s);
+        renderDiscRows();
+      });
+
+      $("#btnRunSearch").on("click", function(){
+        const q = ($("#searchText").val() || "").toLowerCase().trim();
+        const s = ensureState();
+        const rows = (s.activity || []).filter(r => {
+          if(!q) return true;
+          const hay = [r.ts,r.mode,r.user,r.company,r.action,r.location,r.note].join(" ").toLowerCase();
+          return hay.includes(q);
+        });
+        renderActivityRows($("#searchTbody"), rows);
+      });
+      $("#searchText").on("keydown", function(e){ if(e.key==="Enter") $("#btnRunSearch").trigger("click"); });
+
+      // Admin
+      $("#btnAddCompany").on("click", function(){ if(!isAdmin()) return alert("Admin only"); addCompany($("#adminCompanyAdd").val().trim()); $("#adminCompanyAdd").val(""); });
+      $(document).on("click", ".js-del-company", function(e){ e.stopPropagation(); if(!isAdmin()) return; deleteCompany($(this).data("company")); });
+
+      $("#btnAddLocation").on("click", function(){ if(!isAdmin()) return alert("Admin only"); addLocation($("#adminLocationAdd").val().trim()); $("#adminLocationAdd").val(""); });
+      $(document).on("click", ".js-del-loc", function(){ if(!isAdmin()) return; deleteLocation($(this).data("location")); });
+
+      $("#btnAddMed").on("click", function(){ if(!isAdmin()) return alert("Admin only"); addMed($("#adminMedAdd").val().trim()); $("#adminMedAdd").val(""); });
+      $(document).on("click", ".js-del-med", function(){ if(!isAdmin()) return; deleteMed($(this).data("name")); });
+
+      $("#btnAddSup").on("click", function(){ if(!isAdmin()) return alert("Admin only"); addSup($("#adminSupAdd").val().trim()); $("#adminSupAdd").val(""); });
+      $(document).on("click", ".js-del-sup", function(){ if(!isAdmin()) return; deleteSup($(this).data("name")); });
+
+      $("#btnAdminResetMasters").on("click", function(){ if(!isAdmin()) return; resetMasters(); });
+      $("#btnAdminExport").on("click", function(){ if(!isAdmin()) return; exportJson(); });
+      $("#btnAdminImport").on("click", function(){ if(!isAdmin()) return; showImport(); });
+      $("#btnDoImport").on("click", function(){ if(!isAdmin()) return; applyImport(); });
+
+      renderAdminIfVisible();
+
+      // Incident handlers
+      $("#incNumber,#incDate,#incTime,#incUnit,#incNotes").on("input change", refreshIncidentPreview);
+      $("#btnIncAddItem").on("click", addIncidentItemFromForm);
+      $("#btnIncClearItems").on("click", clearIncidentItems);
+      $("#btnIncLoadRecent").on("click", function(){ openIncidentBuilder(true); });
+      $("#btnIncSave").on("click", function(){ saveIncidentToState(); alert("Incident saved."); });
+      $("#btnIncPdf").on("click", generateIncidentPdf);
+      $("#btnIncCopy").on("click", copyIncidentSummary);
+
+      $(document).on("click", ".js-inc-del", function(){
+        removeIncidentItem($(this).data("id"));
+      });
+
+      $("#incidentModal").on("shown.bs.modal", function(){
+        refreshIncidentItemSelect();
+        refreshPdfAvailability();
+        refreshIncidentPreview();
+      });
+
+      // Footer year
+      $("#year").text(new Date().getFullYear());
+    });
+  </script>
+</body>
+</html>

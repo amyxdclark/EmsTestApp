@@ -20,14 +20,25 @@ function seedRowsFromMaster(cfg, category){
     list = getMaster(cfg, "supplies");
   }
   
-  return list.map(x => ({
-    done:false,
-    category,
-    isNarcotic: !!x.isNarcotic,
-    item:x.name,
-    doseQty: (category === "med") ? (x.defaultDose || "") : (category === "equip" ? "" : (x.par || "")),
-    notes: x.notes || ""
-  }));
+  return list.map(x => {
+    // Determine appropriate dose/quantity value based on category
+    let doseQty = "";
+    if (category === "med") {
+      doseQty = x.defaultDose || "";
+    } else if (category === "sup") {
+      doseQty = x.par || "";
+    }
+    // Equipment has no dose/qty, leave empty
+    
+    return {
+      done:false,
+      category,
+      isNarcotic: !!x.isNarcotic,
+      item:x.name,
+      doseQty,
+      notes: x.notes || ""
+    };
+  });
 }
 
 function openChecklistForLocation(loc){

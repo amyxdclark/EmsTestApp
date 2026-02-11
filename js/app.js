@@ -869,7 +869,9 @@ function generateParLevelReport(cfg){
     const parLevel = parseInt(item.par || "0");
     if (parLevel === 0) return;
     
-    // Simulate current quantity (random between 50-150% of par)
+    // Simulate current quantity for demonstration purposes
+    // Random value between 50% and 150% of par level (0.5 + random 0-1 = 0.5-1.5)
+    // In a real system, this would come from actual inventory tracking
     const simulatedCurrent = Math.floor(parLevel * (0.5 + Math.random()));
     
     const entry = {

@@ -225,6 +225,7 @@ $(function(){
     if (key === "home"){ if (!s?.service){ showView("login"); return; } showView("home"); return; }
     if (key === "iwant"){ if (!s?.service){ showView("login"); return; } showView("iwant"); return; }
     if (key === "reports"){ if (!s?.service){ showView("login"); return; } showView("reports"); return; }
+    if (key === "training"){ if (!s?.service){ showView("login"); return; } renderTraining(cfg); showView("training"); return; }
     if (key === "docs"){ showView("docs"); return; }
 
     if (key === "admin"){
@@ -359,6 +360,12 @@ $(function(){
     });
   });
   $("#btnConfirmTransfer").on("click", () => confirmTransferItems());
+
+  // Training module buttons (delegated since they're rendered dynamically)
+  $(document).on("click", "#btnAddCertification", () => openAddCertification());
+  $(document).on("click", "#btnConfirmAddCert", () => confirmAddCertification(loadConfig()));
+  $(document).on("click", "#btnAddTraining", () => openAddTraining());
+  $(document).on("click", "#btnConfirmAddTraining", () => confirmAddTraining(loadConfig()));
 
   $("#btnClearLogs").on("click", () => { localStorage.removeItem(STORAGE_KEYS.logs); renderLogs(); toast("Cleared", "Logs cleared."); });
   $("#btnExportLogsJson").on("click", () => { $("#logExportBox").show().text(JSON.stringify(getLogs(), null, 2)); toast("Export", "Logs shown as JSON."); });

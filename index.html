@@ -40,6 +40,7 @@
           <li class="nav-item"><a class="nav-link active" href="#" data-nav="home">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-nav="iwant">I want to…</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-nav="reports">Reports</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-nav="training">Training</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-nav="docs">Documentation</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-nav="admin" id="adminNav" style="display:none;">Admin</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-nav="sysadmin" id="sysAdminNav" style="display:none;">System Admin</a></li>
@@ -225,6 +226,11 @@
           <pre class="mt-3 p-2 rounded" style="background:#f6f7f8; border:1px solid #e5e7ea; display:none; overflow:auto; max-height: 45vh;" id="logExportBox"></pre>
         </div>
       </div>
+    </div>
+
+    <!-- TRAINING VIEW -->
+    <div class="view" id="view-training">
+      <div id="trainingSection"></div>
     </div>
 
     <!-- DOCUMENTATION MENU PAGE (full docs) -->
@@ -971,6 +977,111 @@
     </div>
   </div>
 
+  <!-- PROTOCOL MODAL -->
+  <div class="modal fade" id="protocolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" id="protocolTitle" style="font-weight:950;">Protocol</h5>
+            <div class="small-note" id="protocolIndications" style="color: rgba(255,255,255,.75) !important;">—</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6 style="font-weight:950;">Key Steps</h6>
+          <div id="protocolSteps" class="mb-3"></div>
+          
+          <h6 style="font-weight:950;">Medications</h6>
+          <div id="protocolMeds"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CERTIFICATION MODAL -->
+  <div class="modal fade" id="addCertModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Add Certification</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-bold">Certification Name <span class="text-danger">*</span></label>
+              <input class="form-control" id="certName" placeholder="e.g., CPR/BLS, ACLS, NR-Paramedic" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Issue Date</label>
+              <input class="form-control" id="certIssueDate" type="date" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Expiration Date</label>
+              <input class="form-control" id="certExpirationDate" type="date" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Certification Number</label>
+              <input class="form-control" id="certNumber" placeholder="Optional" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" type="button" id="btnConfirmAddCert">Add Certification</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD TRAINING RECORD MODAL -->
+  <div class="modal fade" id="addTrainingModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="me-3">
+            <h5 class="modal-title" style="font-weight:950;">Add Training Record</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-bold">Training Topic <span class="text-danger">*</span></label>
+              <input class="form-control" id="trainingTopic" placeholder="e.g., ACLS Recertification, Trauma Skills Lab" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Date</label>
+              <input class="form-control" id="trainingDate" type="date" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-bold">Hours</label>
+              <input class="form-control" id="trainingHours" type="number" step="0.5" placeholder="0" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Instructor</label>
+              <input class="form-control" id="trainingInstructor" placeholder="Optional" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Notes</label>
+              <textarea class="form-control" id="trainingNotes" rows="3" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" type="button" id="btnConfirmAddTraining">Add Training</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div class="toast-host" id="toastHost"></div>
 
@@ -979,6 +1090,7 @@
   <script src="js/storage.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/narcotics.js"></script>
+  <script src="js/training.js"></script>
   <script src="js/checklist.js"></script>
   <script src="js/incident.js"></script>
   <script src="js/admin.js"></script>

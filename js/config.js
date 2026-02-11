@@ -204,5 +204,117 @@ const DEFAULT_CONFIG = {
       html:`<p>Edit master lists + service locations via JSON. Stored locally in this prototype.</p>` },
     systemAdmin:{ title:"System Admin", subtitle:"Global configuration + new app variants",
       html:`<p>Edit the entire JSON config and re-render the UI.</p>` }
+  },
+  training: {
+    certifications: [
+      { name:"CPR/BLS", renewalPeriod:"2 years" },
+      { name:"ACLS", renewalPeriod:"2 years" },
+      { name:"PALS", renewalPeriod:"2 years" },
+      { name:"PHTLS", renewalPeriod:"4 years" },
+      { name:"NR-EMT", renewalPeriod:"2 years" },
+      { name:"NR-Paramedic", renewalPeriod:"2 years" },
+      { name:"State EMT License", renewalPeriod:"varies" },
+      { name:"State Paramedic License", renewalPeriod:"varies" }
+    ],
+    skills: [
+      { name:"IV Insertion", description:"Peripheral IV access" },
+      { name:"IO Insertion", description:"Intraosseous access" },
+      { name:"Endotracheal Intubation", description:"Advanced airway management" },
+      { name:"Supraglottic Airway", description:"King/iGel placement" },
+      { name:"12-Lead ECG", description:"Acquisition and interpretation" },
+      { name:"Medication Administration", description:"IV/IM/IN routes" },
+      { name:"Narcotic Checkout/Waste", description:"DEA controlled substance handling" },
+      { name:"Cardiac Arrest Management", description:"ACLS algorithm" },
+      { name:"Pediatric Assessment", description:"Peds patient care" },
+      { name:"Obstetric Emergencies", description:"Emergency delivery" }
+    ],
+    protocols: [
+      { 
+        title:"Chest Pain / Acute Coronary Syndrome",
+        indications:"Chest pain, discomfort, pressure, or MI equivalent symptoms",
+        keySteps:[
+          "Oxygen if SpO2 < 94%",
+          "Aspirin 324 mg PO (chewable)",
+          "Nitroglycerin 0.4 mg SL (if no contraindications)",
+          "12-Lead ECG",
+          "IV access",
+          "Monitor vital signs and cardiac rhythm"
+        ],
+        medications:["Aspirin 324 mg", "Nitroglycerin 0.4 mg SL", "Morphine 2-4 mg IV (if needed)"]
+      },
+      {
+        title:"Stroke / CVA",
+        indications:"Sudden neurological deficit, facial droop, arm drift, speech difficulty",
+        keySteps:[
+          "Establish time of symptom onset (critical for treatment)",
+          "Cincinnati Stroke Scale or FAST assessment",
+          "Blood glucose check",
+          "Oxygen if SpO2 < 94%",
+          "IV access",
+          "Notify receiving facility - potential stroke alert",
+          "Rapid transport"
+        ],
+        medications:["No routine medications; supportive care"]
+      },
+      {
+        title:"Cardiac Arrest (ACLS)",
+        indications:"Unresponsive, not breathing, no pulse",
+        keySteps:[
+          "Begin high-quality CPR immediately",
+          "Apply AED/monitor and analyze rhythm",
+          "Defibrillate if shockable rhythm (VF/pVT)",
+          "Establish airway (BVM → SGA → ETT)",
+          "IV/IO access",
+          "Epinephrine 1 mg IV/IO every 3-5 minutes",
+          "Amiodarone 300 mg IV/IO for refractory VF/pVT",
+          "Treat reversible causes (Hs and Ts)"
+        ],
+        medications:["Epinephrine 1 mg IV/IO", "Amiodarone 300 mg IV/IO", "Atropine (PEA/Asystole - optional)"]
+      },
+      {
+        title:"Anaphylaxis",
+        indications:"Severe allergic reaction with respiratory distress, hypotension, or angioedema",
+        keySteps:[
+          "Epinephrine 0.3 mg IM (1:1,000) immediately",
+          "Oxygen high-flow",
+          "Albuterol 2.5 mg neb if bronchospasm",
+          "IV access",
+          "Diphenhydramine 25-50 mg IV/IM",
+          "Consider second dose Epi if no improvement in 5 minutes"
+        ],
+        medications:["Epinephrine 1:1,000 IM", "Albuterol neb", "Diphenhydramine 25-50 mg"]
+      },
+      {
+        title:"Respiratory Distress",
+        indications:"Shortness of breath, dyspnea, wheezing, stridor",
+        keySteps:[
+          "Position of comfort (usually upright)",
+          "Oxygen to maintain SpO2 ≥ 94%",
+          "Assess lung sounds and work of breathing",
+          "Albuterol 2.5 mg neb if bronchospasm",
+          "Consider Ipratropium with Albuterol",
+          "CPAP if indicated (CHF, COPD)",
+          "IV access"
+        ],
+        medications:["Albuterol 2.5 mg neb", "Ipratropium 0.5 mg neb", "Nitroglycerin if CHF"]
+      },
+      {
+        title:"Trauma / Major Bleeding",
+        indications:"Significant trauma, hemorrhage, shock",
+        keySteps:[
+          "Scene safety and BSI",
+          "Control life-threatening bleeding (tourniquets, hemostatic agents)",
+          "C-spine precautions if indicated",
+          "Oxygen high-flow",
+          "Treat for shock (IV fluid resuscitation)",
+          "Rapid transport to trauma center",
+          "Consider TXA if significant hemorrhage"
+        ],
+        medications:["TXA 1 g IV (if significant hemorrhage)", "Pain management (Fentanyl, Ketamine)"]
+      }
+    ],
+    userCertifications: {},
+    userSkills: {},
+    trainingRecords: []
   }
 };
